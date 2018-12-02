@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD550C5621B3CE4C000778F2 /* Day02.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD550C5521B3CE4C000778F2 /* Day02.swift */; };
 		CDFEC1FE21B2747000E749B3 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC1FD21B2747000E749B3 /* main.swift */; };
 		CDFEC20521B2748800E749B3 /* Day01.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC20421B2748800E749B3 /* Day01.swift */; };
 		CDFEC20D21B2753F00E749B3 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC20921B2753F00E749B3 /* Stack.swift */; };
@@ -28,6 +29,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CD550C5521B3CE4C000778F2 /* Day02.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day02.swift; sourceTree = "<group>"; };
+		CD550C5721B3CE82000778F2 /* Day02.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day02.txt; sourceTree = "<group>"; };
 		CDFEC1FA21B2747000E749B3 /* AoC 2018 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "AoC 2018"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDFEC1FD21B2747000E749B3 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		CDFEC20421B2748800E749B3 /* Day01.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day01.swift; sourceTree = "<group>"; };
@@ -70,6 +73,7 @@
 			children = (
 				CDFEC1FD21B2747000E749B3 /* main.swift */,
 				CDFEC20421B2748800E749B3 /* Day01.swift */,
+				CD550C5521B3CE4C000778F2 /* Day02.swift */,
 				CDFEC20821B2753F00E749B3 /* Utilities */,
 				CDFEC20621B2749A00E749B3 /* Input */,
 			);
@@ -80,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				CDFEC20721B274B700E749B3 /* Day01.txt */,
+				CD550C5721B3CE82000778F2 /* Day02.txt */,
 			);
 			path = Input;
 			sourceTree = "<group>";
@@ -153,6 +158,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDFEC20F21B2753F00E749B3 /* Queue.swift in Sources */,
+				CD550C5621B3CE4C000778F2 /* Day02.swift in Sources */,
 				CDFEC20E21B2753F00E749B3 /* Point.swift in Sources */,
 				CDFEC1FE21B2747000E749B3 /* main.swift in Sources */,
 				CDFEC20D21B2753F00E749B3 /* Stack.swift in Sources */,
