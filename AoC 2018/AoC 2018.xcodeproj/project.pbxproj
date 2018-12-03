@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD03A30521B45A40001C8B87 /* Day03.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD03A30421B45A40001C8B87 /* Day03.swift */; };
 		CD550C5621B3CE4C000778F2 /* Day02.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD550C5521B3CE4C000778F2 /* Day02.swift */; };
 		CDFEC1FE21B2747000E749B3 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC1FD21B2747000E749B3 /* main.swift */; };
 		CDFEC20521B2748800E749B3 /* Day01.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC20421B2748800E749B3 /* Day01.swift */; };
@@ -29,6 +30,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CD03A30421B45A40001C8B87 /* Day03.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day03.swift; sourceTree = "<group>"; };
+		CD03A30621B45A51001C8B87 /* Day03.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day03.txt; sourceTree = "<group>"; };
 		CD550C5521B3CE4C000778F2 /* Day02.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day02.swift; sourceTree = "<group>"; };
 		CD550C5721B3CE82000778F2 /* Day02.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day02.txt; sourceTree = "<group>"; };
 		CDFEC1FA21B2747000E749B3 /* AoC 2018 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "AoC 2018"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -74,6 +77,7 @@
 				CDFEC1FD21B2747000E749B3 /* main.swift */,
 				CDFEC20421B2748800E749B3 /* Day01.swift */,
 				CD550C5521B3CE4C000778F2 /* Day02.swift */,
+				CD03A30421B45A40001C8B87 /* Day03.swift */,
 				CDFEC20821B2753F00E749B3 /* Utilities */,
 				CDFEC20621B2749A00E749B3 /* Input */,
 			);
@@ -85,6 +89,7 @@
 			children = (
 				CDFEC20721B274B700E749B3 /* Day01.txt */,
 				CD550C5721B3CE82000778F2 /* Day02.txt */,
+				CD03A30621B45A51001C8B87 /* Day03.txt */,
 			);
 			path = Input;
 			sourceTree = "<group>";
@@ -164,6 +169,7 @@
 				CDFEC20D21B2753F00E749B3 /* Stack.swift in Sources */,
 				CDFEC20521B2748800E749B3 /* Day01.swift in Sources */,
 				CDFEC21021B2753F00E749B3 /* Utils.swift in Sources */,
+				CD03A30521B45A40001C8B87 /* Day03.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
