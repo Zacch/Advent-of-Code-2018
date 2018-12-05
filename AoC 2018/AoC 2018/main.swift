@@ -9,6 +9,9 @@
 import Foundation
 
 
-let day = Day04()
+let day = Day05()
+let startTime = CFAbsoluteTimeGetCurrent()
 day.solve()
+let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
+print("Solved in \(timeElapsed) s.")
 let _ = readLine()

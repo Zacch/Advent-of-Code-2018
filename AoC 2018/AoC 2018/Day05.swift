@@ -18,7 +18,6 @@ class Day05 {
         
         var shortest = line.count
         for char in "abcdefghijklmnopqrstuvwxyz" {
-            print(char)
             var l1 = line
             l1.removeAll(where:{ $0 == char})
             l1.removeAll(where:{ $0 == Character(String(char).uppercased())})
@@ -26,6 +25,7 @@ class Day05 {
             if length < shortest {
                 shortest = length
             }
+            print("  \(char) --> \(length) characters")
         }
         print("Part2: \(shortest)")
     }
