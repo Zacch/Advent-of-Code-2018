@@ -5,8 +5,19 @@ import (
 	"io/ioutil"
 	"math"
 	"strings"
+	"sync"
 	"time"
 )
+
+
+var (
+	mutex        sync.Mutex
+	waitGroup    sync.WaitGroup
+	part2        int
+)
+
+
+const numberOfThreads = 10
 
 func main() {
 	startTime := time.Now().UnixNano() / 1000000
@@ -18,20 +29,37 @@ func main() {
 
 	fmt.Println("Part 1:", len(reduce(lines[0])))
 
-	line := lines[0]
-	shortest := math.MaxInt64
-	for c := 'a'; c <= 'z'; c++ {
-		l2 := strings.Replace(line, string(c), "", -1)
-		l3 := strings.Replace(l2, strings.ToUpper(string(c)), "", -1)
-		l4 := reduce(l3)
-		fmt.Println(string(c), "-->", len(l4))
-		if len(l4) < shortest {
-			shortest = len(l4)
-		}
+	lineChannel := make(chan string, numberOfThreads)
+	for n := 0; n < numberOfThreads; n++ {
+		waitGroup.Add(1)
+		go reduceGoRoutine(lineChannel)
 	}
-	fmt.Println("Part 2:", shortest)
+
+	part2 = math.MaxInt64
+	for c := 'a'; c <= 'z'; c++ {
+		l2 := strings.Replace(lines[0], string(c), "", -1)
+		l3 := strings.Replace(l2, strings.ToUpper(string(c)), "", -1)
+		lineChannel <- l3
+	}
+	close(lineChannel)
+	waitGroup.Wait()
+
+	fmt.Println("Part 2:", part2)
 	timeTaken := time.Now().UnixNano() / 1000000 - startTime
 	fmt.Println("Time:", timeTaken, "ms")
+}
+
+func reduceGoRoutine(lineChannel chan string) {
+	for line := range lineChannel {
+		length := len(reduce(line))
+
+		mutex.Lock()
+		if length < part2 {
+			part2 = length
+		}
+		mutex.Unlock()
+	}
+	waitGroup.Done()
 }
 
 func reduce(line string) string {
