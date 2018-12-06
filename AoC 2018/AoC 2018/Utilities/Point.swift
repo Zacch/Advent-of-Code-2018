@@ -26,6 +26,10 @@ class Point: NSObject {
     func reverse() -> Point {
         return Point(x:-x, y:-y)
     }
+    
+    func manhattanDistance(to other: Point) -> Int {
+        return abs(other.x - x) + abs(other.y - y)
+    }
 
     override public var description: String {
         return "[\(x),\(y)]"
