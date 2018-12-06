@@ -67,7 +67,7 @@ class Day06 {
             for y in 0 ..< gridsize {
                 let gridPoint = Point(x: x, y: y)
                 var totalDistance = 0
-                for p in pointDictionary.keys {
+                for p in points {
                     totalDistance += gridPoint.manhattanDistance(to: p)
                 }
                 if totalDistance < 10000 {
