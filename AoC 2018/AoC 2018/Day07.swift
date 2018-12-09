@@ -13,13 +13,13 @@ struct Worker {
     var timeLeft:UInt32 = 0
 }
 
-class Day09 {
+class Day07 {
     
     var steps: [String:String] = [:]
     var steps2: [String:String] = [:]
 
     func solve () {
-        let lines = Utils.readFileLines("Day09.txt")
+        let lines = Utils.readFileLines("Day07.txt")
         for line in lines {
             let tokens = line.components(separatedBy: " ").map { String($0) }
             steps[tokens[7]] = (steps[tokens[7]] ?? "") + tokens[1]

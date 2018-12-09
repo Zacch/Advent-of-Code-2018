@@ -40,9 +40,9 @@ class Node {
     }
 }
 
-class Day10 {
+class Day08{
     func solve () {
-        let lines = Utils.readFileLines("Day10.txt")
+        let lines = Utils.readFileLines("Day08.txt")
         let tokens = lines[0].components(separatedBy: " ").map { Int($0)! }
         print(tokens)
         let root = Node()
