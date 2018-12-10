@@ -8,6 +8,16 @@
 
 import Foundation
 
+extension NSRegularExpression {
+    convenience init(_ pattern: String) {
+        do {
+            try self.init(pattern: pattern)
+        } catch {
+            preconditionFailure("Illegal regular expression: \(pattern).")
+        }
+    }
+}
+
 class Utils {
     
     static func readFile(_ name: String) -> String {
@@ -35,5 +45,18 @@ class Utils {
             let fileContents = readFile(name)
             let lines = fileContents.split(separator: "\n")
             return lines.map {String($0)}
+    }
+    
+/*
+     let ints = Utils.readFileIntegers("Day01.txt")
+     ints.forEach {print($0) }
+ */
+    static func readFileIntegers(_ name: String) -> [[Int]] {
+        let lines = readFileLines(name)
+        let regex = try! NSRegularExpression(pattern: "-?[0-9]+")
+        return lines.map {line in
+                regex.matches(in: line, options: [], range: NSRange(location: 0, length: line.count))
+                    .map { Int((line as NSString).substring(with: $0.range))! }
+        }
     }
 }
