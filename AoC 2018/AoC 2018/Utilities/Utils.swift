@@ -48,15 +48,15 @@ class Utils {
     }
     
 /*
-     let ints = Utils.readFileIntegers("Day01.txt")
-     ints.forEach {print($0) }
+     let ints = Utils.readFileIntegers("Day10.txt")
+     ints.forEach { print($0) }
  */
     static func readFileIntegers(_ name: String) -> [[Int]] {
         let lines = readFileLines(name)
         let regex = try! NSRegularExpression(pattern: "-?[0-9]+")
         return lines.map {line in
                 regex.matches(in: line, options: [], range: NSRange(location: 0, length: line.count))
-                    .map { Int((line as NSString).substring(with: $0.range))! }
+                    .map { Int(line[Range($0.range, in: line)!])! }
         }
     }
 }
