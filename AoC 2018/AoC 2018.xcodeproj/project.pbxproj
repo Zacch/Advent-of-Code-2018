@@ -16,6 +16,7 @@
 		CD93D56821BB86D5001077EC /* Day08.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD93D56721BB86D5001077EC /* Day08.swift */; };
 		CDDBE09521BCD7480029098B /* Day09.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDBE09421BCD7480029098B /* Day09.swift */; };
 		CDDBE09821BE29620029098B /* Day10.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDBE09721BE29620029098B /* Day10.swift */; };
+		CDDBE09A21BF7D8F0029098B /* Day11.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDBE09921BF7D8F0029098B /* Day11.swift */; };
 		CDFEC1FE21B2747000E749B3 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC1FD21B2747000E749B3 /* main.swift */; };
 		CDFEC20521B2748800E749B3 /* Day01.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC20421B2748800E749B3 /* Day01.swift */; };
 		CDFEC20D21B2753F00E749B3 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFEC20921B2753F00E749B3 /* Stack.swift */; };
@@ -54,6 +55,7 @@
 		CDDBE09421BCD7480029098B /* Day09.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day09.swift; sourceTree = "<group>"; };
 		CDDBE09621BCD75A0029098B /* Day10.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day10.txt; sourceTree = "<group>"; };
 		CDDBE09721BE29620029098B /* Day10.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day10.swift; sourceTree = "<group>"; };
+		CDDBE09921BF7D8F0029098B /* Day11.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day11.swift; sourceTree = "<group>"; };
 		CDFEC1FA21B2747000E749B3 /* AoC 2018 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "AoC 2018"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDFEC1FD21B2747000E749B3 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		CDFEC20421B2748800E749B3 /* Day01.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day01.swift; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 				CD93D56721BB86D5001077EC /* Day08.swift */,
 				CDDBE09421BCD7480029098B /* Day09.swift */,
 				CDDBE09721BE29620029098B /* Day10.swift */,
+				CDDBE09921BF7D8F0029098B /* Day11.swift */,
 				CDFEC20821B2753F00E749B3 /* Utilities */,
 				CDFEC20621B2749A00E749B3 /* Input */,
 			);
@@ -201,6 +204,7 @@
 				CDFEC1FE21B2747000E749B3 /* main.swift in Sources */,
 				CDFEC20D21B2753F00E749B3 /* Stack.swift in Sources */,
 				CDDBE09821BE29620029098B /* Day10.swift in Sources */,
+				CDDBE09A21BF7D8F0029098B /* Day11.swift in Sources */,
 				CD1C326121BA34D8002E7BC2 /* Day07.swift in Sources */,
 				CDDBE09521BCD7480029098B /* Day09.swift in Sources */,
 				CD93D56821BB86D5001077EC /* Day08.swift in Sources */,
