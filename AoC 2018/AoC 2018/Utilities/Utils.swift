@@ -60,6 +60,11 @@ class Utils {
         }
     }
     
-    
+    static func getIntegers(_ string: String) -> [Int] {
+        let regex = try! NSRegularExpression(pattern: "-?[0-9]+")
+        return regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.count))
+            .map { Int(string[Range($0.range, in: string)!])! }
+    }
+
     static func nop() {}
 }

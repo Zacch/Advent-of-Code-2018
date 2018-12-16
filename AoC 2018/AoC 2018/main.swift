@@ -9,7 +9,7 @@
 import Foundation
 
 
-let day = Day15()
+let day = Day16()
 let startTime = CFAbsoluteTimeGetCurrent()
 day.solve()
 let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
