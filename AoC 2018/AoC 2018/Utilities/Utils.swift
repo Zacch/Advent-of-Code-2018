@@ -59,4 +59,7 @@ class Utils {
                     .map { Int(line[Range($0.range, in: line)!])! }
         }
     }
+    
+    
+    static func nop() {}
 }
