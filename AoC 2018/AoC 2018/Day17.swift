@@ -33,8 +33,9 @@ class Day17 {
                 if right < digits[2] { right = digits[2] }
             }
         }
-        print(Point(x: left, y: top))
-        print(Point(x: right, y: bottom))
+        
+        left -= 1
+        right += 1
 
         ground = Array<[Character]>(repeating: Array<Character>(repeating: ".", count: bottom - top + 1), count: right - left + 1)
 
@@ -52,14 +53,11 @@ class Day17 {
                 }
             }
         }
-        printGround()
-        print()
 
         fallingWater(x: 500, y: top)
-        printGround()
 
-        print("Part1: \(countWaterReach())")
-        print("Part2: ")
+        print("Part1: \(ground.reduce(0, {$0 + $1.filter({ $0 == "~" || $0 == "|"}).count}))")
+        print("Part2: \(ground.reduce(0, {$0 + $1.filter({ $0 == "~"}).count}))")
     }
     
     func printGround() {
@@ -72,65 +70,141 @@ class Day17 {
         }
     }
 
-    func fallingWater(x: Int, y: Int) {
-        ground[x - left][y - top] = "|"
-        if y == bottom {
-            return
-        }
-        if ground[x - left][y - top + 1] == "." {
-            fallingWater(x: x, y: y + 1)
-        } else {
-            horizontalWater(x: x, y: y)
+    func fallingWater(x: Int, y startY: Int) {
+        var y = startY
+        
+        var done = false
+        while !done {
+            switch ground[x - left][y - top] {
+            case ".":
+                Utils.nop()
+            case "~":
+                done = true
+            case "|":
+                done = true
+            case "#":
+                error()
+            default:
+                error()
+            }
+            if y == bottom {
+                ground[x - left][y - top] = "|"
+                done = true
+            } else {
+                if "~#".contains(ground[x - left][y - top + 1]) {
+                    horizontalWater(x: x, y: y)
+                    done = true
+                } else {
+                    ground[x - left][y - top] = "|"
+                    y += 1
+                }
+            }
         }
     }
 
-    func horizontalWater(x: Int, y: Int) {
-        var isResting = true
-        var leftEnd = x
-        while leftEnd > left {
-            if ground[leftEnd - left][y - top + 1] == "." {
-                isResting = false
-                break
-            }
-            if ground[leftEnd - left - 1][y - top] == "." {
-                leftEnd -= 1
-            } else {
-                break
-            }
+    func horizontalWater(x: Int, y startY: Int) {
+        if "~|".contains(ground[x - left][startY - top]) {
+            return
         }
-
-        var rightEnd = x
-        while rightEnd < right {
-            if ground[rightEnd - left][y - top + 1] == "." {
-                isResting = false
-                break
+        var y = startY
+        var done = false
+        while !done {
+            if !".|".contains(ground[x - left][y - top]) {
+                print(ground[x - left][y - top])
+                ground[x - left][y - top] = "*"
+                error()
             }
-            if ground[rightEnd - left + 1][y - top] == "." {
-                rightEnd += 1
+            var isResting = true
+            var leftEnd = x
+            var endFound = false
+            while leftEnd > left && !endFound {
+                switch ground[leftEnd - left][y - top + 1] {
+                case ".":
+                    isResting = false
+                    endFound = true
+                case "#":
+                    Utils.nop()
+                case "|":
+                    isResting = false
+                    endFound = true
+                case "~":
+                    Utils.nop()
+                default:
+                    error()
+                }
+                
+                if !endFound {
+                    switch ground[leftEnd - left - 1][y - top] {
+                    case ".":
+                        leftEnd -= 1
+                    case "#":
+                        endFound = true
+                    case "|":
+                        leftEnd -= 1
+                    case "~":
+                        error()
+                    default:
+                        error()
+                    }
+                }
+            }
+            
+            var rightEnd = x
+            endFound = false
+            while rightEnd < right && !endFound {
+                switch ground[rightEnd - left][y - top + 1] {
+                case ".":
+                    isResting = false
+                    endFound = true
+                case "#":
+                    Utils.nop()
+                case "|":
+                    isResting = false
+                    endFound = true
+                case "~":
+                    Utils.nop()
+                default:
+                    error()
+                }
+                
+                if !endFound {
+                    switch ground[rightEnd - left + 1][y - top] {
+                    case ".":
+                        rightEnd += 1
+                    case "#":
+                        endFound = true
+                    case "|":
+                        rightEnd += 1
+                    case "~":
+                        error()
+                    default:
+                        error()
+                    }
+                }
+            }
+            
+            if isResting {
+                for x in leftEnd ... rightEnd {
+                    ground[x - left][y - top] = "~"
+                }
+                y -= 1
             } else {
-                break
-            }
-        }
-        
-        if isResting {
-            for x in leftEnd ... rightEnd {
-                ground[x - left][y - top] = "~"
-            }
-            horizontalWater(x: x, y: y - 1)
-        } else {
-            for x in leftEnd ... rightEnd {
-                ground[x - left][y - top] = "|"
-            }
-            if ground[leftEnd - left][y - top + 1] == "." {
-                fallingWater(x: leftEnd, y:y)
-            }
-            if ground[rightEnd - left][y - top + 1] == "." {
-                fallingWater(x: rightEnd, y:y)
+                done = true
+                for x in leftEnd ... rightEnd {
+                    ground[x - left][y - top] = "|"
+                }
+                if ground[leftEnd - left][y - top + 1] == "." {
+                    fallingWater(x: leftEnd, y:y + 1)
+                }
+                if ground[rightEnd - left][y - top + 1] == "." {
+                    fallingWater(x: rightEnd, y:y + 1)
+                }
             }
         }
     }
     
-    func countWaterReach() -> Int {
-        return ground.reduce(0, {$0 + $1.filter({ $0 == "~" || $0 == "|"}).count})
+    func error() {
+        printGround()
+        print("Error!")
     }
 }

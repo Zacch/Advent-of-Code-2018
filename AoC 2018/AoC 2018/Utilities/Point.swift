@@ -14,10 +14,9 @@ class Point: NSObject {
         self.x = x
         self.y = y
     }
-    
-    override
-    var hashValue: Int { get  { return x * 65535 + y }}
-    
+
+    override var hash: Int  { get  { return x << 32 | y }}
+
     override func isEqual(_ object: Any?) -> Bool {
         guard let point = object as? Point else {
             return false
