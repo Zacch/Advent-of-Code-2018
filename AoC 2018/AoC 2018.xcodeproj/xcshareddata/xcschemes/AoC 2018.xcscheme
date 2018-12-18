@@ -47,7 +47,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/rolf.staflin/Advent-of-Code-2018/AoC 2018/AoC 2018/Input"
+      customWorkingDirectory = "/Users/rex/Documents/1 Rex/Hack/Advent-of-Code-2018/AoC 2018/AoC 2018/Input"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
