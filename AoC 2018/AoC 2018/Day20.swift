@@ -18,22 +18,98 @@ class Room {
     }
 }
 
-class Day20 {
+
+class RegexNode {
+    let content: String
+    var parent: RegexNode? = nil
+    var children: [RegexNode] = []
     
+    init(_ string: String) { content = string }
+    init(_ substring: Substring) { content = String(substring) }
+    init() { content = "" }
+    
+    func add(child: RegexNode) -> RegexNode {
+        child.parent = self
+        children.append(child)
+        return child
+    }
+}
+
+class Day20 {
     var map: [[Room]] = [[Room()]]
     var mapSize = 0
     var arraySize: Int { get { return mapSize * 2 + 1 } }
+    
     func solve () {
         // let line = Utils.readFile("Day20.txt")
         
-        let line = "^WNE$"
         // print(line)
-        traceRoute(String(line.dropFirst().dropLast()))
-        printMap()
-        print("Part1: ")
-        print("Part2: ")
+//        let root = parse("ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN")
+        let root = parse("ENWWW(NEEE|SSE(EE|N))")
+        print("---")
+        printVariants(root).forEach {print($0)}
+//        traceRoute(String(line.dropFirst().dropLast()))
+//        printMap()
+//        print("Part1: ")
+//        print("Part2: ")
     }
 
+    func parse(_ input: String) -> RegexNode {
+        print(input)
+        let root = RegexNode()
+        var currentString = ""
+        var currentGroup: RegexNode = root
+        var lastChar: Character = "?"
+        for char in input {
+            switch char {
+            case "(":
+                currentGroup = currentGroup.add(child: RegexNode(currentString))
+                currentString = ""
+            case "|":
+                currentGroup.children.append(RegexNode(currentString))
+                currentString = ""
+            case ")":
+                if currentString.isEmpty {
+                    if lastChar == "|" {
+                        currentGroup.children.append(RegexNode(""))
+                    }
+                } else {
+                    currentGroup.children.append(RegexNode(currentString))
+                    currentString = ""
+                }
+                currentGroup = currentGroup.parent!
+            default:
+                currentString.append(char)
+            }
+            lastChar = char
+        }
+        if !currentString.isEmpty {
+            currentGroup.children.append(RegexNode(currentString)) // Hmm...?
+        }
+
+        return root.children.count == 1 ? root.children[0] :  root
+    }
+
+    
+    // Does not yet work :P
+    func printVariants(_ root:  RegexNode) -> [String] {
+        if root.children.isEmpty {
+            return [root.content]
+        }
+        
+        var result: [String] = [root.content]
+        root.children.forEach {child in
+            let strings = printVariants(child)
+            var newResult: [String] = []
+            result.forEach { s in
+                strings.forEach { newResult.append(s + $0) }
+            }
+            result = newResult
+        }
+        return result
+    }
+
+    
     func traceRoute(_ route: String) {
         var location: Point = Point(x: 0, y: 0)
         location = traceRoute(route, from: location)
