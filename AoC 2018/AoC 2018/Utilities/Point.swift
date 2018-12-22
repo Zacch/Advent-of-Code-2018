@@ -64,6 +64,9 @@ class Point: NSObject {
     override public var description: String {
         return "[\(x),\(y)]"
     }
+    override var debugDescription: String {
+        return "[\(x), \(y)]"
+    }
 }
 
 func +(lhs:Point, rhs:Point) -> Point {
@@ -73,4 +76,3 @@ func +(lhs:Point, rhs:Point) -> Point {
 func -(lhs:Point, rhs:Point) -> Point {
     return Point(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
 }
-
