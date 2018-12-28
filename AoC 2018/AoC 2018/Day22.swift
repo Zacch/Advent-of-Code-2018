@@ -28,8 +28,10 @@ class Day22 {
     var visited: [[CaveLocation?]] = []
 
     init() {
-        arrayWidth = target.x + 1
-        arrayHeight = target.y + 1
+//        arrayWidth = target.x + 1
+//        arrayHeight = target.y + 1
+        arrayWidth = 160
+        arrayHeight = 924
         fillArrays()
     }
     
@@ -37,9 +39,9 @@ class Day22 {
         print("Part 1: \(riskLevel())")
         let path = fastestPath()
         print("Part 2: \(path.time)")
-//        printCave(path)
-//        printPath(path)
-        print(arrayWidth, arrayHeight)
+        printCave(path)
+        printPath(path)
+//        print(arrayWidth, arrayHeight)
     }
     // Part 1: 11575 is correct
     // Part 2: 1085 is too high
@@ -56,7 +58,7 @@ class Day22 {
     
     // A* search with variations
     func fastestPath() -> CaveLocation {
-        let origin = CaveLocation(Point(x: 0, y: 0), tools: [.torch], path: [],
+        let origin = CaveLocation(Point(x: 0, y: 0), tool: .torch, path: [],
                                   time: 0, distanceToGoal: target.x + target.y)
         let frontier = PriorityQueue<CaveLocation>()
         frontier.push(origin, prio: origin.priority)
@@ -64,8 +66,8 @@ class Day22 {
 
         while let current = frontier.pop() {
             if current.coords == target {
-                if !current.tools.contains(.torch) {
-                    current.tools = [.torch]
+                if !(current.tool == .torch) {
+                    current.tool = .torch
                     current.time += 7
                     frontier.push(current, prio: current.priority)
                     continue
@@ -81,7 +83,7 @@ class Day22 {
                     frontier.push(next, prio: next.priority)
                 } else if let old = visited[p.x][p.y],
                     next.time == old.time,
-                    !next.tools.filter({!old.tools.contains($0)}).isEmpty {
+                    next.tool != old.tool {
                     frontier.push(next, prio: next.priority)
                 }
             }
@@ -105,40 +107,33 @@ class Day22 {
         }
         for n in neighbours {
             var time = current.time + 1
-            var tools = current.tools
-            var validTools: [Tool]
-            switch regionType(of: current.coords) {
-            case .rocky:
-                validTools = [.torch, .climbingGear]
-            case .wet:
-                validTools = [.none, .climbingGear]
-            case .narrow:
-                validTools = [.none, .torch]
-            }
+            var tool = current.tool
+            let currentType = regionType(of: current.coords)
 
+            var newTool: Tool?
             switch regionType(of: n) {
             case .rocky:
-                tools = tools.filter { $0 != .none }
-                if tools.isEmpty {
-                    time += 7
-                    tools = [.torch, .climbingGear].filter { validTools.contains($0) }
+                if tool == .noTools {
+                    newTool = (currentType == .wet ? .climbingGear : .torch)
                 }
             case .wet:
-                tools = tools.filter { $0 != .torch }
-                if tools.isEmpty {
-                    time += 7
-                    tools = [.none, .climbingGear].filter { validTools.contains($0) }
+                if tool == .torch {
+                    newTool = (currentType == .rocky ? .climbingGear : .noTools)
                 }
             case .narrow:
-                tools = tools.filter { $0 != .climbingGear }
-                if tools.isEmpty {
-                    time += 7
-                    tools = [.none, .torch].filter { validTools.contains($0) }
+                if tool == .climbingGear {
+                    newTool = (currentType == .rocky ? .torch : .noTools)
                 }
             }
+
+            if newTool != nil {
+                time += 7
+                tool = newTool!
+            }
+
             var path = current.path
             path.append(current)
-            result.append(CaveLocation(n, tools: tools, path: path, time: time,
+            result.append(CaveLocation(n, tool: tool, path: path, time: time,
                                        distanceToGoal: target.manhattanDistance(to: n)))
         }
         return result
@@ -226,18 +221,14 @@ class Day22 {
             var line = ""
             for column in 0 ..< width {
                 if let location = path.filter({ $0.coords == Point(x: column, y: row) }).first {
-                    if location.tools.count > 1 {
-                        line += "*"
-                    } else {
-                        switch location.tools.first! {
-                        case .none:
+                        switch location.tool {
+                        case .noTools:
                             line += "N"
                         case .climbingGear:
                             line += "G"
                         case .torch:
                             line += "T"
                         }
-                    }
                 } else {
                     line += visited[column][row] == nil ? " " : " "
                 }
@@ -264,23 +255,23 @@ enum RegionType {
 }
 
 enum Tool {
-    case none
+    case noTools
     case torch
     case climbingGear
 }
 
 class CaveLocation: NSObject, Comparable {
     let coords: Point
-    var tools: [Tool]
+    var tool: Tool
     var path: [CaveLocation]
 
     var time: Int
     let distanceToGoal: Int
     var priority: Int { get { return time + distanceToGoal } }
 
-    init(_ coords: Point, tools: [Tool], path: [CaveLocation], time: Int, distanceToGoal: Int) {
+    init(_ coords: Point, tool: Tool, path: [CaveLocation], time: Int, distanceToGoal: Int) {
         self.coords = coords
-        self.tools = tools
+        self.tool = tool
         self.path = path
         self.time = time
         self.distanceToGoal = distanceToGoal
@@ -291,7 +282,7 @@ class CaveLocation: NSObject, Comparable {
     }
     
     override public var description: String {
-        return "\(coords) \(tools), prio \(priority), time \(time), dist \(distanceToGoal)"
+        return "\(coords) \(tool), prio \(priority), time \(time), dist \(distanceToGoal)"
     }
     override var debugDescription: String {
         return description
