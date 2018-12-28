@@ -13,7 +13,7 @@ class Day22 {
 //    depth: 11541
 //    target: 14,778
 
-//    let depth = 510 // 11541
+//    let depth = 510
 //    let target = Point(x: 10, y: 10)
 
     let depth = 11541
@@ -35,8 +35,13 @@ class Day22 {
     
     func solve() {
         print("Part 1: \(riskLevel())")
-        print("Part 2: \(fastestPath().time)")
+        let path = fastestPath()
+        print("Part 2: \(path.time)")
+//        printCave(path)
+//        printPath(path)
     }
+    // Part 1: 11575 is correct
+    // Part 2: 1085 is too high
 
     func riskLevel() -> Int {
         var risk = 0
@@ -81,7 +86,6 @@ class Day22 {
         }
         return origin
     }
-    // 1085 is too high
     
     func neighboursOf(_ current: CaveLocation) -> [CaveLocation] {
         var result: [CaveLocation] = []
@@ -197,7 +201,6 @@ class Day22 {
     fileprivate func printPath(_ current: CaveLocation) {
         var path = current.path
         path.append(current)
-        printCave(path)
         
         path.forEach { region in
             var type = " "
@@ -213,14 +216,29 @@ class Day22 {
         }
     }
 
-    func printCave(_ path:[CaveLocation] = []) {
-        for row in 0 ..< arrayHeight {
+    func printCave(_ location:CaveLocation) {
+        var path = location.path
+        path.append(location)
+        let width = path.map { $0.coords.x }.max()! + 1
+        let height = path.map { $0.coords.y }.max()! + 1
+        for row in 0 ..< height {
             var line = ""
-            for column in 0 ..< arrayWidth {
-                if path.contains(where: { $0.coords == Point(x: column, y: row) }) {
-                    line += visited[column][row] == nil ? "!" : "*"
+            for column in 0 ..< width {
+                if let location = path.filter({ $0.coords == Point(x: column, y: row) }).first {
+                    if location.tools.count > 1 {
+                        line += "*"
+                    } else {
+                        switch location.tools.first! {
+                        case .none:
+                            line += "N"
+                        case .climbingGear:
+                            line += "G"
+                        case .torch:
+                            line += "T"
+                        }
+                    }
                 } else {
-                    line += visited[column][row] == nil ? " " : "_"
+                    line += visited[column][row] == nil ? " " : " "
                 }
                 switch erosion[column][row] % 3 {
                 case 0:
@@ -257,7 +275,7 @@ class CaveLocation: NSObject, Comparable {
 
     var time: Int
     let distanceToGoal: Int
-    var priority: Int { get { return time + distanceToGoal } } //  + (tools.contains(.torch) ? 0 : 7)
+    var priority: Int { get { return time + distanceToGoal } }
 
     init(_ coords: Point, tools: [Tool], path: [CaveLocation], time: Int, distanceToGoal: Int) {
         self.coords = coords
