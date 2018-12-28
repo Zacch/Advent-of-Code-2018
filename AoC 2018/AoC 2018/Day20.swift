@@ -23,41 +23,38 @@ class Day20 {
     var mapSize = 0
     var arraySize: Int { get { return mapSize * 2 + 1 } }
     
+    var roomsFarAway: Set<Point> = []
+    let farLimit = 1000
     func solve () {
-//         let line = String(Utils.readFile("Day20.txt").dropFirst().dropLast())
-        let line = "ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN"
-//        let line = "ENWWW(NEEE|SSE(EE|N))"
- //       let line = "WNENWNNWWWS"
-//        let line = "N(E|W)N(E|W)N"
+        let line = String(Utils.readFileLines("Day20.txt").first!.dropFirst().dropLast())
         let sequence = parseLine(line)
+        let _ = createMap(sequence, from: [Point(x: 0, y: 0)])
 
-        let _ = traceRoute(sequence, from: [Point(x: 0, y: 0)])
-        printMap()
-        print("Part1: ")
-//        print("Part2: ")
+        print("Part1: \(furthestRoomDistance())")
+        print("Part2: \(roomsFarAway.count)")
     }
 
-    func traceRoute(_ sequence: PartSequence, from startPoints:[Point]) -> [Point] {
-        var locations = startPoints
+    func createMap(_ sequence: PartSequence, from startPoints:[Point]) -> [Point] {
+        var endPoints = startPoints
         for part in sequence.parts {
             if let directions = part as? Directions {
-                locations = traceRoute(directions, from: locations)
+                endPoints = createMap(directions, from: endPoints)
             } else {
-                locations = traceRoute(part as! Fork, from: locations)
+                endPoints = createMap(part as! Fork, from: endPoints)
             }
-        }
-        return locations
-    }
-
-    func traceRoute(_ fork: Fork, from startPoints: [Point]) -> [Point] {
-        var endPoints: [Point] = []
-        for sequence in fork.sequences {
-            endPoints.append(contentsOf: traceRoute(sequence, from: startPoints))
         }
         return endPoints
     }
 
-    func traceRoute(_ directions: Directions, from startPoints: [Point]) -> [Point] {
+    func createMap(_ fork: Fork, from startPoints: [Point]) -> [Point] {
+        var endPoints: [Point] = []
+        for sequence in fork.sequences {
+            endPoints.append(contentsOf: createMap(sequence, from: startPoints))
+        }
+        return Array(Set(endPoints))
+    }
+
+    func createMap(_ directions: Directions, from startPoints: [Point]) -> [Point] {
         var endPoints: [Point] = []
         for point in startPoints {
             var x = point.x, y = point.y
@@ -83,9 +80,43 @@ class Day20 {
                     print("ERROR")
                 }
             }
-            endPoints.append(Point(x: x, y: y))
+            if !endPoints.contains(Point(x: x, y: y)) {
+                endPoints.append(Point(x: x, y: y))
+            }
         }
         return endPoints
+    }
+    
+    func furthestRoomDistance() -> Int {
+        var visited: [Path] = []
+        var frontier: [Path] = [Path(Point(x: 0, y: 0))]
+        
+        while !frontier.isEmpty {
+            let next = frontier[0]
+            frontier.remove(at: 0)
+            let room = roomAt(next.end.x, next.end.y)
+            var paths: [Path] = []
+            if room.n { paths.append(Path(next.end.up())) }
+            if room.e { paths.append(Path(next.end.right())) }
+            if room.w { paths.append(Path(next.end.left())) }
+            if room.s { paths.append(Path(next.end.down())) }
+            for path in paths {
+                if visited.contains(path) || frontier.contains(path) {
+                    continue
+                }
+                path.rooms = next.rooms
+                path.rooms.append(next.end)
+                frontier.append(path)
+            }
+            if next.rooms.count >= farLimit {
+                roomsFarAway.insert(next.end)
+            }
+            if frontier.isEmpty {
+                return next.rooms.count
+            }
+            visited.append(next)
+        }
+        return 0
     }
 
     func roomAt(_ x:Int, _ y:Int) -> Room {
@@ -179,6 +210,22 @@ class Day20 {
             }
         }
         return (restOfLine.dropFirst(), result as Part)
+    }
+}
+
+class Path: NSObject {
+    let end: Point
+    var rooms: [Point] = []
+    init(_ end:Point) {
+        self.end = end
+    }
+    override var hash: Int  { get  { return end.hash }}
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Path else {
+            return false
+        }
+        return self.end == other.end
     }
 }
 
