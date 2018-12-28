@@ -83,6 +83,7 @@
 		CDA05C5E21D0B2EB009DEFC4 /* Day24.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day24.txt; sourceTree = "<group>"; };
 		CDA05C5F21D1F636009DEFC4 /* Day25.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day25.txt; sourceTree = "<group>"; };
 		CDA05C6021D1F64A009DEFC4 /* Day25.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day25.swift; sourceTree = "<group>"; };
+		CDA05C6221D43E00009DEFC4 /* Day23 part 2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Day23 part 2.txt"; sourceTree = "<group>"; };
 		CDDBE09421BCD7480029098B /* Day09.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day09.swift; sourceTree = "<group>"; };
 		CDDBE09621BCD75A0029098B /* Day10.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day10.txt; sourceTree = "<group>"; };
 		CDDBE09721BE29620029098B /* Day10.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day10.swift; sourceTree = "<group>"; };
@@ -192,6 +193,7 @@
 				CD7312DF21CB58C700EAE9B8 /* Day20.txt */,
 				CD5C5F4521CC3E02003AB32A /* Day21.txt */,
 				CD5C5F4E21CF5B80003AB32A /* Day23.txt */,
+				CDA05C6221D43E00009DEFC4 /* Day23 part 2.txt */,
 				CDA05C5E21D0B2EB009DEFC4 /* Day24.txt */,
 				CDA05C5F21D1F636009DEFC4 /* Day25.txt */,
 			);

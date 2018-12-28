@@ -58,7 +58,9 @@ class Point: NSObject {
     }
     
     func manhattanDistance(to other: Point) -> Int {
-        return abs(other.x - x) + abs(other.y - y)
+        let deltaX: Int = abs(other.x - x)
+        let deltaY: Int = abs(other.y - y)
+        return deltaX + deltaY
     }
 
     override public var description: String {
@@ -75,4 +77,46 @@ func +(lhs:Point, rhs:Point) -> Point {
 
 func -(lhs:Point, rhs:Point) -> Point {
     return Point(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+}
+
+class Point3: NSObject {
+    let x: Int
+    let y: Int
+    let z: Int
+    init(x: Int, y: Int, z: Int) {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+    
+    override var hash: Int  { get  { return x << 43 | y << 21 | z}}
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Point3 else {
+            return false
+        }
+        return self.x == other.x && self.y == other.y && self.z == other.z
+    }
+    
+    func manhattanDistance(to other: Point3) -> Int {
+        let deltaX: Int = abs(other.x - x)
+        let deltaY: Int = abs(other.y - y)
+        let deltaZ: Int = abs(other.z - z)
+        return deltaX + deltaY + deltaZ
+    }
+    
+    override public var description: String {
+        return "[\(x),\(y),\(z)]"
+    }
+    override var debugDescription: String {
+        return description
+    }
+}
+
+func +(lhs:Point3, rhs:Point3) -> Point3 {
+    return Point3(x: lhs.x + rhs.x, y: lhs.y + rhs.y, z: lhs.z + rhs.z)
+}
+
+func -(lhs:Point3, rhs:Point3) -> Point3 {
+    return Point3(x: lhs.x - rhs.x, y: lhs.y - rhs.y, z: lhs.z - rhs.z)
 }
