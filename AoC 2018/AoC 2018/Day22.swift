@@ -9,12 +9,6 @@
 import Foundation
 
 class Day22 {
-    
-//    depth: 11541
-//    target: 14,778
-
-//    let depth = 510
-//    let target = Point(x: 10, y: 10)
 
     let depth = 11541
     let target = Point(x: 14, y: 778)
@@ -25,13 +19,9 @@ class Day22 {
     var geoIndex:[[Int]] = []
     var erosion:[[Int]] = []
 
-    var visited: [[CaveLocation?]] = []
-
     init() {
-//        arrayWidth = target.x + 1
-//        arrayHeight = target.y + 1
-        arrayWidth = 160
-        arrayHeight = 924
+        arrayWidth = target.x + 1
+        arrayHeight = target.y + 1
         fillArrays()
     }
     
@@ -39,12 +29,9 @@ class Day22 {
         print("Part 1: \(riskLevel())")
         let path = fastestPath()
         print("Part 2: \(path.time)")
-        printCave(path)
-        printPath(path)
-//        print(arrayWidth, arrayHeight)
+//        printCave(path)
+//        printPath(path)
     }
-    // Part 1: 11575 is correct
-    // Part 2: 1085 is too high
 
     func riskLevel() -> Int {
         var risk = 0
@@ -62,30 +49,34 @@ class Day22 {
                                   time: 0, distanceToGoal: target.x + target.y)
         let frontier = PriorityQueue<CaveLocation>()
         frontier.push(origin, prio: origin.priority)
-        visited[0][0] = origin
+        var visited: [Point:[CaveLocation]] = [:]
 
         while let current = frontier.pop() {
             if current.coords == target {
-                if !(current.tool == .torch) {
-                    current.tool = .torch
-                    current.time += 7
-                    frontier.push(current, prio: current.priority)
+                if current.tool != .torch {
+                    let goal = CaveLocation(current.coords, tool: .torch, path: current.path, time: current.time + 7, distanceToGoal: 0)
+                    frontier.push(goal, prio: goal.priority)
                     continue
                 }
                 return current
             }
             let neighbours = neighboursOf(current)
             for next in neighbours {
-                let p = next.coords
-
-                if visited[p.x][p.y] == nil || next.time < visited[p.x][p.y]!.time {
-                    visited[p.x][p.y] = next
-                    frontier.push(next, prio: next.priority)
-                } else if let old = visited[p.x][p.y],
-                    next.time == old.time,
-                    next.tool != old.tool {
+                if let old = visited[next.coords]?.first(where: { $0.tool == next.tool }) {
+                    if old.time > next.time {
+                        print("Replacing \(old)")
+                        print("     with \(next)")
+                        visited[next.coords] = visited[next.coords]!.filter { $0 != next }
+                        frontier.push(next, prio: next.priority)
+                    }
+                } else {
                     frontier.push(next, prio: next.priority)
                 }
+            }
+            if visited[current.coords] == nil {
+                visited[current.coords] = [current]
+            } else {
+                visited[current.coords]!.append(current)
             }
         }
         return origin
@@ -93,8 +84,21 @@ class Day22 {
     
     func neighboursOf(_ current: CaveLocation) -> [CaveLocation] {
         var result: [CaveLocation] = []
+        var newPath = current.path
+        newPath.append(current)
+
+        var theOtherTool: Tool
+        switch regionType(of: current.coords) {
+        case .rocky:
+            theOtherTool = (current.tool == .torch ? .climbingGear : .torch)
+        case .wet:
+            theOtherTool = (current.tool == .noTools ? .climbingGear : .noTools)
+        case .narrow:
+            theOtherTool = (current.tool == .torch ? .noTools : .torch)
+        }
+        result.append(CaveLocation(current.coords, tool: theOtherTool, path: newPath, time: current.time + 7, distanceToGoal: current.distanceToGoal))
+
         let p = current.coords
-        
         if p.x + 1 >= arrayWidth || p.y + 1 >= arrayHeight {
             growArrays()
         }
@@ -106,38 +110,20 @@ class Day22 {
             neighbours.append(Point(x: p.x, y: p.y - 1))
         }
         for n in neighbours {
-            var time = current.time + 1
-            var tool = current.tool
-            let currentType = regionType(of: current.coords)
-
-            var newTool: Tool?
             switch regionType(of: n) {
             case .rocky:
-                if tool == .noTools {
-                    newTool = (currentType == .wet ? .climbingGear : .torch)
-                }
+                if current.tool == .noTools { continue }
             case .wet:
-                if tool == .torch {
-                    newTool = (currentType == .rocky ? .climbingGear : .noTools)
-                }
+                if current.tool == .torch { continue }
             case .narrow:
-                if tool == .climbingGear {
-                    newTool = (currentType == .rocky ? .torch : .noTools)
-                }
+                if current.tool == .climbingGear { continue }
             }
-
-            if newTool != nil {
-                time += 7
-                tool = newTool!
-            }
-
-            var path = current.path
-            path.append(current)
-            result.append(CaveLocation(n, tool: tool, path: path, time: time,
-                                       distanceToGoal: target.manhattanDistance(to: n)))
+            result.append(CaveLocation(n, tool: current.tool, path: newPath, time: current.time + 1,
+                                       distanceToGoal: n.manhattanDistance(to: target)))
         }
         return result
     }
+
     
     func regionType(of region: Point) -> RegionType {
         switch erosion[region.x][region.y] % 3 {
@@ -174,21 +160,9 @@ class Day22 {
                 erosion[x][y] = (geoIndex[x][y] + depth) % 20183
             }
         }
-        
-        if visited.isEmpty {
-            visited = Array<[CaveLocation?]>(repeating: Array<CaveLocation?>(repeating: nil, count: arrayHeight), count: arrayWidth)
-        }
     }
     
     func growArrays() {
-        var newVisited: [[CaveLocation?]] = []
-        newVisited.append(contentsOf: visited)
-        for i in 0 ..< arrayWidth {
-            newVisited[i].append(contentsOf: Array<CaveLocation?>(repeating: nil, count: 5))
-        }
-        newVisited.append(contentsOf:
-            Array<[CaveLocation?]>(repeating: Array<CaveLocation?>(repeating: nil, count: arrayHeight + 5), count: 5))
-        visited = newVisited
         arrayWidth += 5
         arrayHeight += 5
         fillArrays()
@@ -230,7 +204,7 @@ class Day22 {
                             line += "T"
                         }
                 } else {
-                    line += visited[column][row] == nil ? " " : " "
+                    line += " "
                 }
                 switch erosion[column][row] % 3 {
                 case 0:
@@ -260,7 +234,7 @@ enum Tool {
     case climbingGear
 }
 
-class CaveLocation: NSObject, Comparable {
+class CaveLocation: NSObject {
     let coords: Point
     var tool: Tool
     var path: [CaveLocation]
@@ -277,8 +251,24 @@ class CaveLocation: NSObject, Comparable {
         self.distanceToGoal = distanceToGoal
     }
 
-    static func < (lhs: CaveLocation, rhs: CaveLocation) -> Bool {
-        return lhs.priority < rhs.priority
+    override var hash: Int  {
+        get {
+            switch tool {
+            case .noTools:
+                return coords.hash
+            case .climbingGear:
+                return coords.hash + 1 << 61
+            case .torch:
+                return coords.hash + 1 << 62
+            }
+        }
+    }
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? CaveLocation else {
+            return false
+        }
+        return self.coords == other.coords && self.tool == other.tool
     }
     
     override public var description: String {

@@ -8,14 +8,14 @@
 
 import Foundation
 
-class PriorityQueue<T: Any> {
-    var queue: [Int:[T]] = [:]
+class PriorityQueue<T: Hashable> {
+    var queue: [Int:Set<T>] = [:]
     
     func push(_ object: T, prio: Int) {
-        if queue[prio] == nil {
-            queue[prio] = [object]
+        if queue.keys.contains(prio) {
+            queue[prio]!.insert(object)
         } else {
-            queue[prio]?.append(object)
+            queue[prio] = Set([object])
         }
     }
     
@@ -24,10 +24,10 @@ class PriorityQueue<T: Any> {
             return nil
         }
         let firstKey = queue.keys.sorted().first!
-        var array = queue[firstKey]!
-        let result = array.first!
-        array = Array(array.dropFirst())
-        queue[firstKey] = array.isEmpty ? nil : array
+        let result = queue[firstKey]!.popFirst()
+        if queue[firstKey]!.isEmpty {
+            queue[firstKey] = nil
+        }
         return result
     }
     
