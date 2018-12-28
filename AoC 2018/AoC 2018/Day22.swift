@@ -14,133 +14,48 @@ class Day22 {
 //    target: 14,778
 
 //    let depth = 510 // 11541
-//    var width = 11  // 15
-//    var height = 11 // 779
 //    let target = Point(x: 10, y: 10)
 
     let depth = 11541
-    var width = 15
-    var height = 779
     let target = Point(x: 14, y: 778)
+
+    var arrayWidth: Int
+    var arrayHeight: Int
 
     var geoIndex:[[Int]] = []
     var erosion:[[Int]] = []
 
     var visited: [[CaveLocation?]] = []
 
-    
-    func fillArrays() {
-        geoIndex = Array<[Int]>(repeating: Array<Int>(repeating: 0, count: height), count: width)
-        erosion  = Array<[Int]>(repeating: Array<Int>(repeating: 0, count: height), count: width)
-        for x in 0 ..< width {
-            geoIndex[x][0] = x * 16807
-            erosion[x][0] = (geoIndex[x][0] + depth) % 20183
-        }
-        for y in 0 ..< height {
-            geoIndex[0][y] = y * 48271
-            erosion[0][y] = (geoIndex[0][y] + depth) % 20183
-        }
-        for x in 1 ..< width {
-            for y in 1 ..< height {
-                if x == target.x && y == target.y {
-                    geoIndex[x][y] = 0
-                    erosion[x][y] = depth % 20183
-                } else {
-                    geoIndex[x][y] = erosion[x - 1][y] * erosion[x][y - 1]
-                    erosion[x][y] = (geoIndex[x][y] + depth) % 20183
-                }
-            }
-        }
-        
-        if visited.isEmpty {
-            visited = Array<[CaveLocation?]>(repeating: Array<CaveLocation?>(repeating: nil, count: height), count: width)
-        }
-    }
-    
-    func growArrays() {
-        var newVisited: [[CaveLocation?]] = []
-        newVisited.append(contentsOf: visited)
-        for i in 0 ..< width {
-            newVisited[i].append(contentsOf: Array<CaveLocation?>(repeating: nil, count: 5))
-        }
-        newVisited.append(contentsOf:
-            Array<[CaveLocation?]>(repeating: Array<CaveLocation?>(repeating: nil, count: height + 5), count: 5))
-        visited = newVisited
-        width += 5
-        height += 5
+    init() {
+        arrayWidth = target.x + 1
+        arrayHeight = target.y + 1
         fillArrays()
-    }
-
-    fileprivate func printPath(_ current: CaveLocation) {
-        var path = current.path
-        path.append(current)
-        printCave(path)
-        
-        path.forEach { region in
-            var type = " "
-            switch regionType(of: region.coords) {
-            case .rocky:
-                type = "."
-            case .wet:
-                type = "="
-            case .narrow:
-                type = "|"
-            }
-            print("\(type) \(region))")
-        }
     }
     
     func solve() {
-        fillArrays()
-
         print("Part 1: \(riskLevel())")
-        let current = part2()
-        print("Part 2: \(current.time)")
+        print("Part 2: \(fastestPath().time)")
     }
-    
-    func printCave(_ path:[CaveLocation] = []) {
-        for row in 0 ..< height {
-            var line = ""
-            for column in 0 ..< width {
-                if path.contains(where: { $0.coords == Point(x: column, y: row) }) {
-                    line += visited[column][row] == nil ? "!" : "*"
-                } else {
-                    line += visited[column][row] == nil ? " " : "_"
-                }
-                switch erosion[column][row] % 3 {
-                case 0:
-                    line += "."
-                case 1:
-                    line += "="
-                case 2:
-                    line += "|"
-                default:
-                    print("error")
-                }
-            }
-            print(line)
-        }
-    }
+
     func riskLevel() -> Int {
         var risk = 0
-        for x in 0 ..< width {
-            for y in 0 ..< height {
+        for x in 0 ..< arrayWidth {
+            for y in 0 ..< arrayHeight {
                 risk += erosion[x][y] % 3
             }
         }
         return risk
     }
     
-    // A* search
-    func part2() -> CaveLocation {
+    // A* search with variations
+    func fastestPath() -> CaveLocation {
         let origin = CaveLocation(Point(x: 0, y: 0), tools: [.torch], path: [],
                                   time: 0, distanceToGoal: target.x + target.y)
         var frontier = PriorityQueue<CaveLocation>(ascending: true, startingValues: [origin])
+        visited[0][0] = origin
 
         while let current = frontier.pop() {
-//            if current.coords == Point(x: 4, y: 2) {
-//                printCave(current.path)
-//            }
             if current.coords == target {
                 if !current.tools.contains(.torch) {
                     current.tools = [.torch]
@@ -148,18 +63,11 @@ class Day22 {
                     frontier.push(current)
                     continue
                 }
-//                printPath(current)
-//                for c in frontier.filter({ $0.coords == target }) {
-//                    printPath(c)
-//                }
                 return current
             }
             let neighbours = neighboursOf(current)
             for next in neighbours {
                 let p = next.coords
-//                if p == Point(x: 4, y: 2) {
-//                    printCave(next.path)
-//                }
 
                 if visited[p.x][p.y] == nil || next.time < visited[p.x][p.y]!.time {
                     visited[p.x][p.y] = next
@@ -169,19 +77,17 @@ class Day22 {
                     !next.tools.filter({!old.tools.contains($0)}).isEmpty {
                     frontier.push(next)
                 }
-
             }
         }
         return origin
     }
-    
     // 1085 is too high
     
     func neighboursOf(_ current: CaveLocation) -> [CaveLocation] {
         var result: [CaveLocation] = []
         let p = current.coords
         
-        if p.x + 1 >= width || p.y + 1 >= height {
+        if p.x + 1 >= arrayWidth || p.y + 1 >= arrayHeight {
             growArrays()
         }
         var neighbours: [Point] = [Point(x: p.x + 1, y: p.y), Point(x: p.x, y: p.y + 1)]
@@ -245,6 +151,91 @@ class Day22 {
             return .rocky
         }
     }
+    
+    func fillArrays() {
+        geoIndex = Array<[Int]>(repeating: Array<Int>(repeating: 0, count: arrayHeight), count: arrayWidth)
+        erosion  = Array<[Int]>(repeating: Array<Int>(repeating: 0, count: arrayHeight), count: arrayWidth)
+        for x in 0 ..< arrayWidth {
+            geoIndex[x][0] = x * 16807
+            erosion[x][0] = (geoIndex[x][0] + depth) % 20183
+        }
+        for y in 0 ..< arrayHeight {
+            geoIndex[0][y] = y * 48271
+            erosion[0][y] = (geoIndex[0][y] + depth) % 20183
+        }
+        for x in 1 ..< arrayWidth {
+            for y in 1 ..< arrayHeight {
+                if x == target.x && y == target.y {
+                    geoIndex[x][y] = 0
+                    erosion[x][y] = depth % 20183
+                } else {
+                    geoIndex[x][y] = erosion[x - 1][y] * erosion[x][y - 1]
+                    erosion[x][y] = (geoIndex[x][y] + depth) % 20183
+                }
+            }
+        }
+        
+        if visited.isEmpty {
+            visited = Array<[CaveLocation?]>(repeating: Array<CaveLocation?>(repeating: nil, count: arrayHeight), count: arrayWidth)
+        }
+    }
+    
+    func growArrays() {
+        var newVisited: [[CaveLocation?]] = []
+        newVisited.append(contentsOf: visited)
+        for i in 0 ..< arrayWidth {
+            newVisited[i].append(contentsOf: Array<CaveLocation?>(repeating: nil, count: 5))
+        }
+        newVisited.append(contentsOf:
+            Array<[CaveLocation?]>(repeating: Array<CaveLocation?>(repeating: nil, count: arrayHeight + 5), count: 5))
+        visited = newVisited
+        arrayWidth += 5
+        arrayHeight += 5
+        fillArrays()
+    }
+    
+    fileprivate func printPath(_ current: CaveLocation) {
+        var path = current.path
+        path.append(current)
+        printCave(path)
+        
+        path.forEach { region in
+            var type = " "
+            switch regionType(of: region.coords) {
+            case .rocky:
+                type = "."
+            case .wet:
+                type = "="
+            case .narrow:
+                type = "|"
+            }
+            print("\(type) \(region))")
+        }
+    }
+
+    func printCave(_ path:[CaveLocation] = []) {
+        for row in 0 ..< arrayHeight {
+            var line = ""
+            for column in 0 ..< arrayWidth {
+                if path.contains(where: { $0.coords == Point(x: column, y: row) }) {
+                    line += visited[column][row] == nil ? "!" : "*"
+                } else {
+                    line += visited[column][row] == nil ? " " : "_"
+                }
+                switch erosion[column][row] % 3 {
+                case 0:
+                    line += "."
+                case 1:
+                    line += "="
+                case 2:
+                    line += "|"
+                default:
+                    print("error")
+                }
+            }
+            print(line)
+        }
+    }
 }
 
 enum RegionType {
@@ -266,7 +257,7 @@ class CaveLocation: NSObject, Comparable {
 
     var time: Int
     let distanceToGoal: Int
-    var priority: Int { get { return time + distanceToGoal } }
+    var priority: Int { get { return time + distanceToGoal } } //  + (tools.contains(.torch) ? 0 : 7)
 
     init(_ coords: Point, tools: [Tool], path: [CaveLocation], time: Int, distanceToGoal: Int) {
         self.coords = coords
@@ -279,11 +270,6 @@ class CaveLocation: NSObject, Comparable {
     static func < (lhs: CaveLocation, rhs: CaveLocation) -> Bool {
         return lhs.priority < rhs.priority
     }
-    
-    static func == (lhs: CaveLocation, rhs: CaveLocation) -> Bool {
-        return lhs.coords == rhs.coords
-    }
-    
     
     override public var description: String {
         return "\(coords) \(tools), prio \(priority), time \(time), dist \(distanceToGoal)"
