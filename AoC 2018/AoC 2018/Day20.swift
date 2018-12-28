@@ -18,131 +18,76 @@ class Room {
     }
 }
 
-
-class RegexNode {
-    let content: String
-    var parent: RegexNode? = nil
-    var children: [RegexNode] = []
-    
-    init(_ string: String) { content = string }
-    init(_ substring: Substring) { content = String(substring) }
-    init() { content = "" }
-    
-    func add(child: RegexNode) -> RegexNode {
-        child.parent = self
-        children.append(child)
-        return child
-    }
-}
-
 class Day20 {
     var map: [[Room]] = [[Room()]]
     var mapSize = 0
     var arraySize: Int { get { return mapSize * 2 + 1 } }
     
     func solve () {
-        // let line = Utils.readFile("Day20.txt")
-        
-        // print(line)
-//        let root = parse("ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN")
-        let root = parse("ENWWW(NEEE|SSE(EE|N))")
-        print("---")
-        printVariants(root).forEach {print($0)}
-//        traceRoute(String(line.dropFirst().dropLast()))
-//        printMap()
-//        print("Part1: ")
+//         let line = String(Utils.readFile("Day20.txt").dropFirst().dropLast())
+        let line = "ENNWSWW(NEWS|)SSSEEN(WNSE|)EE(SWEN|)NNN"
+//        let line = "ENWWW(NEEE|SSE(EE|N))"
+ //       let line = "WNENWNNWWWS"
+//        let line = "N(E|W)N(E|W)N"
+        let sequence = parseLine(line)
+
+        let _ = traceRoute(sequence, from: [Point(x: 0, y: 0)])
+        printMap()
+        print("Part1: ")
 //        print("Part2: ")
     }
 
-    func parse(_ input: String) -> RegexNode {
-        print(input)
-        let root = RegexNode()
-        var currentString = ""
-        var currentGroup: RegexNode = root
-        var lastChar: Character = "?"
-        for char in input {
-            switch char {
-            case "(":
-                currentGroup = currentGroup.add(child: RegexNode(currentString))
-                currentString = ""
-            case "|":
-                currentGroup.children.append(RegexNode(currentString))
-                currentString = ""
-            case ")":
-                if currentString.isEmpty {
-                    if lastChar == "|" {
-                        currentGroup.children.append(RegexNode(""))
-                    }
-                } else {
-                    currentGroup.children.append(RegexNode(currentString))
-                    currentString = ""
+    func traceRoute(_ sequence: PartSequence, from startPoints:[Point]) -> [Point] {
+        var locations = startPoints
+        for part in sequence.parts {
+            if let directions = part as? Directions {
+                locations = traceRoute(directions, from: locations)
+            } else {
+                locations = traceRoute(part as! Fork, from: locations)
+            }
+        }
+        return locations
+    }
+
+    func traceRoute(_ fork: Fork, from startPoints: [Point]) -> [Point] {
+        var endPoints: [Point] = []
+        for sequence in fork.sequences {
+            endPoints.append(contentsOf: traceRoute(sequence, from: startPoints))
+        }
+        return endPoints
+    }
+
+    func traceRoute(_ directions: Directions, from startPoints: [Point]) -> [Point] {
+        var endPoints: [Point] = []
+        for point in startPoints {
+            var x = point.x, y = point.y
+            for c in directions.s {
+                switch c {
+                case "N":
+                    roomAt(x, y).n = true
+                    y -= 1
+                    roomAt(x, y).s = true
+                case "E":
+                    roomAt(x, y).e = true
+                    x += 1
+                    roomAt(x, y).w = true
+                case "S":
+                    roomAt(x, y).s = true
+                    y += 1
+                    roomAt(x, y).n = true
+                case "W":
+                    roomAt(x, y).w = true
+                    x -= 1
+                    roomAt(x, y).e = true
+                default:
+                    print("ERROR")
                 }
-                currentGroup = currentGroup.parent!
-            default:
-                currentString.append(char)
             }
-            lastChar = char
+            endPoints.append(Point(x: x, y: y))
         }
-        if !currentString.isEmpty {
-            currentGroup.children.append(RegexNode(currentString)) // Hmm...?
-        }
-
-        return root.children.count == 1 ? root.children[0] :  root
+        return endPoints
     }
 
-    
-    // Does not yet work :P
-    func printVariants(_ root:  RegexNode) -> [String] {
-        if root.children.isEmpty {
-            return [root.content]
-        }
-        
-        var result: [String] = [root.content]
-        root.children.forEach {child in
-            let strings = printVariants(child)
-            var newResult: [String] = []
-            result.forEach { s in
-                strings.forEach { newResult.append(s + $0) }
-            }
-            result = newResult
-        }
-        return result
-    }
-
-    
-    func traceRoute(_ route: String) {
-        var location: Point = Point(x: 0, y: 0)
-        location = traceRoute(route, from: location)
-        print(location)
-    }
-    func traceRoute(_ route: String, from p: Point) -> Point {
-        print(route)
-        var x = p.x, y = p.y
-        route.forEach { c in
-            switch c {
-            case "N":
-                roomAt(x, y).n = true
-                y -= 1
-                roomAt(x, y).s = true
-            case "E":
-                roomAt(x, y).e = true
-                x += 1
-                roomAt(x, y).w = true
-            case "S":
-                roomAt(x, y).s = true
-                y += 1
-                roomAt(x, y).n = true
-            case "W":
-                roomAt(x, y).w = true
-                x -= 1
-                roomAt(x, y).e = true
-            default:
-                error()
-            }
-        }
-        return Point(x: x, y: y)
-    }
-    
     func roomAt(_ x:Int, _ y:Int) -> Room {
         while y < -mapSize || y > mapSize ||
               x < -mapSize || x > mapSize {
@@ -173,21 +118,103 @@ class Day20 {
     }
     
     func printMap() {
-        
         print(String(Array<Character>(repeating: "#", count: arraySize * 2 + 1)))
         map.forEach { row in
             var line = "#"
-            line.append(row.map{ String($0.number) + String($0.e ? "|" : "#") }.reduce("", +))
+            line.append(row.map{ " " + String($0.e ? "|" : "#") }.reduce("", +))
             print(line)
             line = "#"
             line.append(row.map{ String($0.s ? "-" : "#") + "#" }.reduce("", +))
             print(line)
         }
         print("---")
-
     }
 
     func error() {
         print("Error")
+    }
+    
+    //    MARK: -
+    func parseLine(_ line: String) -> PartSequence {
+        var sequence = PartSequence()
+        (_, sequence) = parseSequence(Substring(line))
+        return sequence
+    }
+    
+    func parseSequence(_ s: Substring) -> (Substring, PartSequence) {
+        let sequence = PartSequence()
+        var restOfLine = s
+        while !restOfLine.isEmpty && !"|)".contains(restOfLine.first!) {
+            var part = Part()
+            (restOfLine, part) = parsePart(restOfLine)
+            sequence.parts.append(part)
+        }
+        return (restOfLine, sequence)
+    }
+    
+    func parsePart(_ s: Substring) -> (Substring, Part) {
+        if s.starts(with: "(") {
+            return parseFork(s)
+        }
+        var i = s.startIndex
+        while i < s.endIndex && "NESW".contains(s[i]) {
+            i = s.index(after: i)
+        }
+        let part: Part = Directions(String(s[s.startIndex ..< i]))
+        return (s[i ..< s.endIndex], part)
+    }
+    
+    func parseFork(_ s: Substring) -> (Substring, Part) {
+        let result: Fork = Fork()
+        var restOfLine = s.dropFirst()
+        while !restOfLine.starts(with: ")") {
+            var sequence: PartSequence
+            (restOfLine, sequence) = parseSequence(restOfLine)
+            result.sequences.append(sequence)
+            if restOfLine.starts(with: "|") {
+                restOfLine = restOfLine.dropFirst()
+                if restOfLine.starts(with: ")") {
+                    result.sequences.append(PartSequence())
+                }
+            }
+        }
+        return (restOfLine.dropFirst(), result as Part)
+    }
+}
+
+class PartSequence: NSObject {
+    var parts: [Part] = []
+    
+    override public var description: String {
+        return parts.map {$0.description}.reduce("", +)
+    }
+}
+
+class Part: NSObject {
+}
+
+class Directions: Part {
+    let s: String
+    
+    init(_ directions: String) {
+        s = directions
+    }
+    
+    override public var description: String {
+        return s
+    }
+}
+
+class Fork: Part {
+    var sequences: [PartSequence] = []
+    override public var description: String {
+        if sequences.isEmpty {
+            return "()"
+        }
+        var result = "("
+        for sequence in sequences {
+            result += sequence.description + "|"
+        }
+        return result.dropLast() + ")"
     }
 }
