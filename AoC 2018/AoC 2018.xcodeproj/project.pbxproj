@@ -13,7 +13,6 @@
 		CD550C5621B3CE4C000778F2 /* Day02.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD550C5521B3CE4C000778F2 /* Day02.swift */; };
 		CD5C5F4421CC3DED003AB32A /* Day21.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5C5F4321CC3DED003AB32A /* Day21.swift */; };
 		CD5C5F4721CE1363003AB32A /* Day22.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5C5F4621CE1363003AB32A /* Day22.swift */; };
-		CD5C5F4B21CE266B003AB32A /* PriorityQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5C5F4A21CE266B003AB32A /* PriorityQueue.swift */; };
 		CD5C5F4D21CF5B70003AB32A /* Day23.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5C5F4C21CF5B70003AB32A /* Day23.swift */; };
 		CD712F1121C8B597003951C5 /* Day18.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD712F1021C8B597003951C5 /* Day18.swift */; };
 		CD7312DB21C9A1C900EAE9B8 /* Day19.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7312DA21C9A1C900EAE9B8 /* Day19.swift */; };
@@ -23,6 +22,7 @@
 		CD93D56821BB86D5001077EC /* Day08.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD93D56721BB86D5001077EC /* Day08.swift */; };
 		CDA05C5D21D0B2DE009DEFC4 /* Day24.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA05C5C21D0B2DE009DEFC4 /* Day24.swift */; };
 		CDA05C6121D1F64A009DEFC4 /* Day25.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA05C6021D1F64A009DEFC4 /* Day25.swift */; };
+		CDA05C8421D6B6A8009DEFC4 /* PriorityQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA05C8321D6B6A8009DEFC4 /* PriorityQueue.swift */; };
 		CDDBE09521BCD7480029098B /* Day09.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDBE09421BCD7480029098B /* Day09.swift */; };
 		CDDBE09821BE29620029098B /* Day10.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDBE09721BE29620029098B /* Day10.swift */; };
 		CDDBE09A21BF7D8F0029098B /* Day11.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDBE09921BF7D8F0029098B /* Day11.swift */; };
@@ -64,7 +64,6 @@
 		CD5C5F4321CC3DED003AB32A /* Day21.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day21.swift; sourceTree = "<group>"; };
 		CD5C5F4521CC3E02003AB32A /* Day21.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day21.txt; sourceTree = "<group>"; };
 		CD5C5F4621CE1363003AB32A /* Day22.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day22.swift; sourceTree = "<group>"; };
-		CD5C5F4A21CE266B003AB32A /* PriorityQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriorityQueue.swift; sourceTree = "<group>"; };
 		CD5C5F4C21CF5B70003AB32A /* Day23.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day23.swift; sourceTree = "<group>"; };
 		CD5C5F4E21CF5B80003AB32A /* Day23.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day23.txt; sourceTree = "<group>"; };
 		CD712F0F21C8B58B003951C5 /* Day18.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day18.txt; sourceTree = "<group>"; };
@@ -84,6 +83,7 @@
 		CDA05C5F21D1F636009DEFC4 /* Day25.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day25.txt; sourceTree = "<group>"; };
 		CDA05C6021D1F64A009DEFC4 /* Day25.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day25.swift; sourceTree = "<group>"; };
 		CDA05C6221D43E00009DEFC4 /* Day23 part 2.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Day23 part 2.txt"; sourceTree = "<group>"; };
+		CDA05C8321D6B6A8009DEFC4 /* PriorityQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriorityQueue.swift; sourceTree = "<group>"; };
 		CDDBE09421BCD7480029098B /* Day09.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day09.swift; sourceTree = "<group>"; };
 		CDDBE09621BCD75A0029098B /* Day10.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Day10.txt; sourceTree = "<group>"; };
 		CDDBE09721BE29620029098B /* Day10.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Day10.swift; sourceTree = "<group>"; };
@@ -207,7 +207,7 @@
 				CDFEC20A21B2753F00E749B3 /* Point.swift */,
 				CDFEC20B21B2753F00E749B3 /* Queue.swift */,
 				CDFEC20C21B2753F00E749B3 /* Utils.swift */,
-				CD5C5F4A21CE266B003AB32A /* PriorityQueue.swift */,
+				CDA05C8321D6B6A8009DEFC4 /* PriorityQueue.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -274,10 +274,10 @@
 				CDDBE0A021C2219A0029098B /* Day13.swift in Sources */,
 				CDFEC20E21B2753F00E749B3 /* Point.swift in Sources */,
 				CDFEC1FE21B2747000E749B3 /* main.swift in Sources */,
-				CD5C5F4B21CE266B003AB32A /* PriorityQueue.swift in Sources */,
 				CD5C5F4721CE1363003AB32A /* Day22.swift in Sources */,
 				CDFEC20D21B2753F00E749B3 /* Stack.swift in Sources */,
 				CDDBE09821BE29620029098B /* Day10.swift in Sources */,
+				CDA05C8421D6B6A8009DEFC4 /* PriorityQueue.swift in Sources */,
 				CDDBE09A21BF7D8F0029098B /* Day11.swift in Sources */,
 				CDDBE09D21C0CC720029098B /* Day12.swift in Sources */,
 				CD1C326121BA34D8002E7BC2 /* Day07.swift in Sources */,

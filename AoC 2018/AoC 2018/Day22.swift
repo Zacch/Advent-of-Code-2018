@@ -39,14 +39,15 @@ class Day22 {
         print("Part 2: \(path.time)")
 //        printCave(path)
 //        printPath(path)
+        print(arrayWidth, arrayHeight)
     }
     // Part 1: 11575 is correct
     // Part 2: 1085 is too high
 
     func riskLevel() -> Int {
         var risk = 0
-        for x in 0 ..< arrayWidth {
-            for y in 0 ..< arrayHeight {
+        for x in 0 ... target.x {
+            for y in 0 ... target.y {
                 risk += erosion[x][y] % 3
             }
         }
@@ -57,7 +58,8 @@ class Day22 {
     func fastestPath() -> CaveLocation {
         let origin = CaveLocation(Point(x: 0, y: 0), tools: [.torch], path: [],
                                   time: 0, distanceToGoal: target.x + target.y)
-        var frontier = PriorityQueue<CaveLocation>(ascending: true, startingValues: [origin])
+        let frontier = PriorityQueue<CaveLocation>()
+        frontier.push(origin, prio: origin.priority)
         visited[0][0] = origin
 
         while let current = frontier.pop() {
@@ -65,7 +67,7 @@ class Day22 {
                 if !current.tools.contains(.torch) {
                     current.tools = [.torch]
                     current.time += 7
-                    frontier.push(current)
+                    frontier.push(current, prio: current.priority)
                     continue
                 }
                 return current
@@ -76,11 +78,11 @@ class Day22 {
 
                 if visited[p.x][p.y] == nil || next.time < visited[p.x][p.y]!.time {
                     visited[p.x][p.y] = next
-                    frontier.push(next)
+                    frontier.push(next, prio: next.priority)
                 } else if let old = visited[p.x][p.y],
                     next.time == old.time,
                     !next.tools.filter({!old.tools.contains($0)}).isEmpty {
-                    frontier.push(next)
+                    frontier.push(next, prio: next.priority)
                 }
             }
         }
@@ -171,11 +173,10 @@ class Day22 {
             for y in 1 ..< arrayHeight {
                 if x == target.x && y == target.y {
                     geoIndex[x][y] = 0
-                    erosion[x][y] = depth % 20183
                 } else {
                     geoIndex[x][y] = erosion[x - 1][y] * erosion[x][y - 1]
-                    erosion[x][y] = (geoIndex[x][y] + depth) % 20183
                 }
+                erosion[x][y] = (geoIndex[x][y] + depth) % 20183
             }
         }
         
