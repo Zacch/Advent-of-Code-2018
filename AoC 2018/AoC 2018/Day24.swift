@@ -10,24 +10,45 @@ import Foundation
 
 class Day24 {
     
-    var immunityArmy: [ArmyGroup] = []
-    var infectionArmy: [ArmyGroup] = []
+    var parsedImmunityArmy: [ArmyGroup] = []
+    var parsedInfectionArmy: [ArmyGroup] = []
     
     func solve () {
         parseInput()
-        let winningArmy = battle()
-        let units = winningArmy.map { $0.units }.reduce(0, +)
-        print("Part1: \(units)")
-        print("Part2: ")
+        print("Part1: \(part1())")
+        print("Part2: \(part2())")
+    }
+    
+    func part1() -> Int {
+        let (_, winningArmy) = battle(immuneBoost: 0)
+        return winningArmy.map { $0.units }.reduce(0, +)
     }
 
-    func battle() -> [ArmyGroup] {
+    func part2() -> Int {
+        var low = 0
+        var high = 65536
+        var win: Bool = false
+        var winningArmy: [ArmyGroup] = []
+        while low + 1 < high {
+            let middle = (low + high) / 2
+            (win, winningArmy) = battle(immuneBoost: middle)
+            if win {
+                high = middle
+            } else {
+                low = middle
+            }
+        }
+        if !win {
+            (_, winningArmy) = battle(immuneBoost: high)
+        }
+        return winningArmy.map { $0.units }.reduce(0, +)
+    }
+
+    func battle(immuneBoost: Int) -> (Bool, [ArmyGroup]) {
+        var immunityArmy = parsedImmunityArmy.map { $0.copy(boost: immuneBoost) }
+        var infectionArmy = parsedInfectionArmy.map { $0.copy(boost: 0) }
+        
         while !immunityArmy.isEmpty && !infectionArmy.isEmpty {
-            print("Immune System:")
-            immunityArmy.forEach { print("Group \($0.id) contains \($0.units) units") }
-            print("Infection:")
-            infectionArmy.forEach { print("Group \($0.id) contains \($0.units) units") }
-            print()
 
             // Target selection
             var groupsInSelectOrder = Array(infectionArmy).sorted { g1, g2 in
@@ -43,9 +64,7 @@ class Day24 {
             for attacker in groupsInSelectOrder {
                 let enemies = attacker.isImmunity ? infectionArmy : immunityArmy
                 let filteredEnemies = enemies.filter({ !$0.isTargeted && damage(by: attacker, on: $0) > 0 })
-                filteredEnemies.forEach { target in
-                    print("\(attacker.isImmunity ? "Immune System" : "Infection") group \(attacker.id) would deal defending group \(target.id) \(damage(by: attacker, on: target)) damage")
-                }
+
                 let sortedEnemies = filteredEnemies.sorted(by: { g1, g2 in
                     let d1 = damage(by: attacker, on: g1)
                     let d2 = damage(by: attacker, on: g2)
@@ -58,70 +77,33 @@ class Day24 {
                     attacker.target = target
                 }
             }
-            print()
-            
-            // Testing
-            for group in immunityArmy {
-                if group.isImmunity == false { error() }
-                if group.units <= 0 { error() }
-                if group.effectivePower <= 0 { error() }
-                if infectionArmy.filter({ $0.target?.id == group.id }).count != (group.isTargeted ? 1 : 0) { error() }
-            }
-            for group in infectionArmy {
-                if group.isImmunity == true { error() }
-                if group.units <= 0 { error() }
-                if group.effectivePower <= 0 { error() }
-                if immunityArmy.filter({ $0.target?.id == group.id }).count != (group.isTargeted ? 1 : 0) { error() }
-            }
             
             // Attacking
             var groupsInAttackOrder = Array(immunityArmy)
             groupsInAttackOrder.append(contentsOf: infectionArmy)
             groupsInAttackOrder = groupsInAttackOrder.sorted { $0.initiative > $1.initiative }
-            
+            var stalemate = true
             for attacker in groupsInAttackOrder {
                 if let target = attacker.target,
                    attacker.units > 0 {
                     let hit = damage(by: attacker, on: target)
                     let unitsLost = min(target.units, hit / target.hitPointsPerUnit)
-                    print("\(attacker.isImmunity ? "Immune System" : "Infection") group \(attacker.id) attacks defending group \(target.id), killing \(unitsLost) \(unitsLost == 1 ? "unit" : "units")")
+                    if unitsLost > 0 {
+                        stalemate = false
+                    }
                     target.units -= unitsLost
                 }
             }
-            print()
+            if stalemate {
+                // Assume the infection wins stalemates, since we are looking
+                // for the smallest boost that lets the immune system win.
+                return (false, [])
+            }
 
-            // Testing
-            for group in immunityArmy {
-                if group.isImmunity == false { error() }
-                if group.units < 0 { error() }
-                if group.effectivePower < 0 { error() }
-                if infectionArmy.filter({ $0.target?.id == group.id }).count != (group.isTargeted ? 1 : 0) { error() }
-            }
-            for group in infectionArmy {
-                if group.isImmunity == true { error() }
-                if group.units < 0 { error() }
-                if group.effectivePower < 0 { error() }
-                if immunityArmy.filter({ $0.target?.id == group.id }).count != (group.isTargeted ? 1 : 0) { error() }
-            }
             immunityArmy = immunityArmy.filter { $0.units > 0 }
             infectionArmy = infectionArmy.filter { $0.units > 0 }
         }
-        
-        print("Immune System:")
-        if immunityArmy.isEmpty {
-            print("No groups remain.")
-        } else {
-            immunityArmy.forEach { print("Group \($0.id) contains \($0.units) units") }
-        }
-        print("Infection:")
-        if infectionArmy.isEmpty {
-            print("No groups remain.")
-        } else {
-            infectionArmy.forEach { print("Group \($0.id) contains \($0.units) units") }
-        }
-        print()
-
-        return immunityArmy.isEmpty ? infectionArmy : immunityArmy
+        return immunityArmy.isEmpty ? (false, infectionArmy) : (true, immunityArmy)
     }
         
     
@@ -178,17 +160,11 @@ class Day24 {
             group.attackType = tokens[index + 6]
 
             if parsingImmunityArmy {
-                immunityArmy.append(group)
+                parsedImmunityArmy.append(group)
             } else {
-                infectionArmy.append(group)
+                parsedInfectionArmy.append(group)
             }
         }
-        print("Immune System:")
-        immunityArmy.forEach { print($0) }
-        print()
-        print("Infection:")
-        infectionArmy.forEach { print($0) }
-        print()
     }
     
     func parseTypes(_ startIndex: Int, tokens: [String]) -> (Int, [String]) {
@@ -223,6 +199,19 @@ class ArmyGroup : NSObject {
     var target: ArmyGroup?
     var isTargeted = false
     
+    func copy(boost: Int) -> ArmyGroup {
+        let copy = ArmyGroup()
+        copy.id = id
+        copy.isImmunity = isImmunity
+        copy.units = units
+        copy.hitPointsPerUnit = hitPointsPerUnit
+        copy.immunities = immunities
+        copy.weaknesses = weaknesses
+        copy.attackType = attackType
+        copy.damage = damage + boost
+        copy.initiative = initiative
+        return copy
+    }
     
     override var hash: Int  { get  { return isImmunity ? id : id << 32 }}
     
@@ -231,36 +220,5 @@ class ArmyGroup : NSObject {
             return false
         }
         return self.isImmunity == other.isImmunity && self.id == other.id
-    }
-
-    /// A total overkill, aiming at producing the same output as in Day24.txt
-    /// (but immunities and weaknesses are in random order in the text file)
-    override public var description: String {
-        var immuneString = ""
-        if !immunities.isEmpty {
-            immuneString = "immune to "
-            immunities.forEach { immuneString += $0 + ", "}
-            immuneString = String(immuneString.dropLast().dropLast())
-        }
-
-        var weaknessString = ""
-        if !weaknesses.isEmpty {
-            weaknessString = "weak to "
-            weaknesses.forEach { weaknessString += $0 + ", "}
-            weaknessString = String(weaknessString.dropLast().dropLast())
-        }
-
-        var totalString = ""
-        if immuneString.isEmpty {
-            totalString = weaknessString
-        } else if weaknessString.isEmpty {
-            totalString = immuneString
-        } else {
-            totalString = immuneString + "; " + weaknessString
-        }
-        if !totalString.isEmpty {
-            totalString = "(" + totalString + ") "
-        }
-        return "\(units) units each with \(hitPointsPerUnit) hit points \(totalString)with an attack that does \(damage) \(attackType) damage at initiative \(initiative)"
     }
 }
