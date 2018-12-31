@@ -25,6 +25,8 @@ class Day23 {
                 let other = botArray[j]
                 if bot.intersects(other) {
                     bot.intersecting.append(other)
+                }
+                if other.intersects(bot) {
                     other.intersecting.append(bot)
                 }
             }
@@ -78,19 +80,14 @@ class Day23 {
     }
 
     func solve () {
-        let lines = Utils.readFileIntegers("Day23 part 2.txt")
+        let lines = Utils.readFileIntegers("Day23.txt")
         bots = lines.map { Bot($0) }
         
-//        let strongestBot = bots.sorted(by: {$0.r > $1.r}).first!
-//        print("Part1: \(bots.filter({strongestBot.canReach($0)}).count)")
-//
-//        let targetBots = findBotsInDeepestCluster()
-        let targetBots = bots
+        let strongestBot = bots.sorted(by: {$0.r > $1.r}).first!
+        print("Part1: \(bots.filter({strongestBot.canReach($0)}).count)")
 
-//        for bot in targetBots {
-//            print("pos=<\(bot.x),\(bot.y),\(bot.z)>, r=\(bot.r)")
-//        }
-
+        let targetBots = findBotsInDeepestCluster()
+ 
         var minimum = Point3(x: Int.min, y: Int.min, z: Int.min)
         var maximum = Point3(x: Int.max, y: Int.max, z: Int.max)
         for bot in targetBots {
@@ -101,15 +98,7 @@ class Day23 {
                              y: min(maximum.y, bot.maxY),
                              z: min(maximum.z, bot.maxZ))
         }
-        print("Minimum: \(minimum)")
-        print("Maximum: \(maximum)")
-/*
 
- Minimum: [12,12,10]
- Maximum: [12,14,14]
-    some: [10,12,12], r = 2
-
-*/
         var size = maximum.x - minimum.x + maximum.y - minimum.y + maximum.z - minimum.z
         var lastSize = size + 1
         while size < lastSize {
@@ -153,54 +142,14 @@ class Day23 {
         print("botsInRangeOf(maximum)", botsInRangeOf(maximum, targetBots))
 
         let botsOutside = targetBots.filter { !$0.canReach(minimum) }
-        //     context.addRect(CGRect(x: Int(center.x) + 83, y: Int(center.y) + 66, width: 154, height: 210))
 
-        for bot in botsOutside {
-            var rangeLeft = bot.r
-            if bot.y < minimum.y { rangeLeft -= minimum.y - bot.y }
-            if bot.y > maximum.y { rangeLeft -= bot.y - maximum.y }
-            if bot.z < minimum.z { rangeLeft -= minimum.z - bot.z }
-            if bot.z > maximum.z { rangeLeft -= bot.z - maximum.z }
+        print("Minimum is \(minimum.manhattanDistance(to: Point3(x: 0, y: 0, z: 0)))")
 
-            if minimum.x + rangeLeft < bot.x - bot.r {
-                print("\(bot) needs \(bot.x - bot.r - minimum.x)")
-            }
+        let positiveBots = botsOutside.filter { $0.x > minimum.x && $0.y > minimum.y && $0.z > minimum.z }
+        for bot in bots.sorted(by: { $0.closestToZero() <  $1.closestToZero() }) {
+            print(bot.closestToZero(), bot.farthestFromZero(), bot)
         }
- 
-        
-//        botsOutside.forEach {
-//            print("drawCircle(x: \($0.y / 300000), y: \($0.z / 300000), r: \($0.r / 300000), in: context)")
-//
-//        }
-//        let width = (maximum.x - minimum.x) / 30000
-//        let height = (maximum.z - minimum.z) / 30000
-//
-//        print("context.addRect(CGRect(x: Int(center.x) + \(minimum.y / 300000), y: Int(center.y) + \(minimum.z / 300000), width: \(width), height: \(height)))")
 
-        
-//        targetBots.forEach {print($0.intersecting.count)}
-        
-//        let minBot = Bot([minimum.x, minimum.y, minimum.z, 0])
-//        var minDistance = Int.max
-//        for bot in targetBots {
-//            minDistance = min(minDistance, bot.manhattanDistance(to: minBot) - bot.r)
-//            print("\(minDistance) \(bot)")
-//        }
-//        for bot in targetBots {
-//            if bot.x < minimum.x || bot.y < minimum.y || bot.z < minimum.z {
-//                print("       \(bot)")
-//                print("error")
-//            }
-//        }
-//        for bot in targetBots {
-//            if bot.manhattanDistance(to: minBot) > bot.r {
-//                minDistance = min(minDistance, bot.manhattanDistance(to: minBot) - bot.r)
-//                Utils.nop()
-//            }
-//        }
-//        print("minDistance: \(minDistance)")
-//        print(minBot.manhattanDistance(to: Bot([0, 0, 0, 0])))
-//        print(minDistance + minBot.manhattanDistance(to: Bot([0, 0, 0, 0])))
     }
     
     func botsInRangeOf(_ bot: Bot, _ bots:[Bot]) -> Int {
@@ -216,7 +165,8 @@ class Day23 {
 // 119006026 is too high
 //  99011840 is too high
 //  75629842 is too low
-//  75780131 is wrong.
+//  75780131 is wrong
+//  84087794 is wrong
 
 
 class Cluster {
@@ -255,6 +205,14 @@ class Bot: NSObject {
         r = ints[3]
     }
     
+    func closestToZero() -> Int {
+        return max(0, manhattanDistance(to: Point3(x: 0, y: 0, z: 0)) - r)
+    }
+    
+    func farthestFromZero() -> Int {
+        return max(0, manhattanDistance(to: Point3(x: 0, y: 0, z: 0)) + r)
+    }
+
     func manhattanDistance(to other: Bot) -> Int {
         let deltaX: Int = abs(other.x - x)
         let deltaY: Int = abs(other.y - y)
