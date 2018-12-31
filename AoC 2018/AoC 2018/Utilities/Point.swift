@@ -120,3 +120,48 @@ func +(lhs:Point3, rhs:Point3) -> Point3 {
 func -(lhs:Point3, rhs:Point3) -> Point3 {
     return Point3(x: lhs.x - rhs.x, y: lhs.y - rhs.y, z: lhs.z - rhs.z)
 }
+
+
+class Point4: NSObject {
+    let x: Int
+    let y: Int
+    let z: Int
+    let t: Int
+    init(_ ints:[Int]) {
+        self.x = ints[0]
+        self.y = ints[1]
+        self.z = ints[2]
+        self.t = ints[3]
+    }
+    init(x: Int, y: Int, z: Int, t: Int) {
+        self.x = x
+        self.y = y
+        self.z = z
+        self.t = t
+    }
+
+    func manhattanDistance(to other: Point4) -> Int {
+        let deltaX: Int = abs(other.x - x)
+        let deltaY: Int = abs(other.y - y)
+        let deltaZ: Int = abs(other.z - z)
+        let deltaT: Int = abs(other.t - t)
+        return deltaX + deltaY + deltaZ + deltaT
+    }
+    
+    override var hash: Int  { get  { return x << 48 + y << 32 + z << 16 + t}}
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let point = object as? Point4 else {
+            return false
+        }
+        return self.x == point.x && self.y == point.y &&
+            self.z == point.z && self.t == point.t
+    }
+    
+    override public var description: String {
+        return "[\(x), \(y), \(z), \(t)]"
+    }
+    override var debugDescription: String {
+        return description
+    }
+}
