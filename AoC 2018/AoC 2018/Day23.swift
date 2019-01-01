@@ -8,75 +8,115 @@
 
 import Foundation
 
+extension Point4 {
+    var distanceTo3dOrigin: Int { get { return abs(x) + abs(y) + abs(z) } }
+}
 
 class Day23 {
     
     var bots: [Bot] = []
     
-    var deepestDepth = 0
-    var deepestClusters: [Cluster] = []
+    let granularity = 12
 
-    fileprivate func calculateIntersections(in botArray: [Bot]) {
-        botArray.forEach { $0.intersecting = [] }
-
-        for i in 0 ..< botArray.count {
-            let bot = botArray[i]
-            for j in i + 1 ..< botArray.count {
-                let other = botArray[j]
-                if bot.intersects(other) {
-                    bot.intersecting.append(other)
-                }
-                if other.intersects(bot) {
-                    other.intersecting.append(bot)
+    fileprivate func divideAndSearch(_ bots: [Bot]) -> Point4 {
+        var bestPoint = Point4([0,0,0,0])
+        var minimum = Point3(x: -(4 << 30), y: -(4 << 30), z: -(4 << 30))
+        var maximum = Point3(x: (4 << 30), y: (4 << 30), z: (4 << 30))
+        for bot in bots {
+            minimum = Point3(x: min(minimum.x, bot.minX),
+                             y: min(minimum.y, bot.minY),
+                             z: min(minimum.z, bot.minZ))
+            maximum = Point3(x: max(maximum.x, bot.maxX),
+                             y: max(maximum.y, bot.maxY),
+                             z: max(maximum.z, bot.maxZ))
+        }
+        
+        print(minimum)
+        print(maximum)
+        
+        var xStep = (maximum.x - minimum.x) / granularity
+        var yStep = (maximum.y - minimum.y) / granularity
+        var zStep = (maximum.z - minimum.z) / granularity
+        while xStep > 0 || yStep > 0 || zStep > 0 {
+            var points: [Point4] = []
+            for x1 in 0 ... granularity {
+                let x = minimum.x + x1 * xStep
+                for y1 in 0 ... granularity {
+                    let y = minimum.y + y1 * yStep
+                    for z1 in 0 ... granularity {
+                        let z = minimum.z + z1 * zStep
+                        points.append(Point4(x: x, y: y, z: z, t: botsInRangeOf(Point3(x: x, y: y, z: z), bots)))
+                    }
                 }
             }
+            let sortedPoints = points.sorted(by: { $0.t > $1.t ||
+                ($0.t == $1.t && $0.distanceTo3dOrigin < $1.distanceTo3dOrigin) })
+            bestPoint = sortedPoints.first!
+            print(bestPoint, bestPoint.manhattanDistance(to: Point4([0, 0, 0, bestPoint.t])), xStep, yStep, zStep)
+            minimum = Point3(x: bestPoint.x - xStep * 5, y: bestPoint.y - yStep * 5, z: bestPoint.z - zStep * 5)
+            maximum = Point3(x: bestPoint.x + xStep * 5, y: bestPoint.y + yStep * 5, z: bestPoint.z + zStep * 5)
+            if sortedPoints.first!.t > sortedPoints.last!.t {
+                xStep = (maximum.x - minimum.x) / granularity
+                yStep = (maximum.y - minimum.y) / granularity
+                zStep = (maximum.z - minimum.z) / granularity
+            }
+            else {
+                print("foo")
+            }
         }
+        return bestPoint
     }
     
-    fileprivate func recurseClusters(_ parent: Cluster, depth: Int) {
-        var botsLeft = parent.bots
-        while !botsLeft.isEmpty {
-            calculateIntersections(in: botsLeft)
-            let mostConnected = botsLeft.sorted(by: {b1, b2 in
-                b1.intersecting.count > b2.intersecting.count ||
-                b1.intersecting.count == b2.intersecting.count && b1.r > b2.r
-            }).first!
-            
-            let cluster = Cluster(mostConnected, parent: parent, bots: mostConnected.intersecting, depth: depth)
-            botsLeft.removeAll(where: { $0 == mostConnected || cluster.bots.contains($0) })
-            parent.children.append(cluster)
-            if depth > deepestDepth {
-                deepestDepth = depth
-                deepestClusters = []
-                if depth % 10 == 0 {
-                    print(depth)
+    /// This implementation is way too inefficient – there are millions of points on the "frontier" 
+    func searchFrontier(_ p: Point4) -> Point4 {
+        print("searchFrontier(\(p)) \(p.distanceTo3dOrigin)")
+        var frontier: [Point4] = [p]
+        var visited: [Point4] = []
+
+        let botCount = p.t
+        let distanceToOrigin = p.distanceTo3dOrigin
+
+        var count = 0
+        while !frontier.isEmpty {
+            let current = frontier.popLast()!
+            let neighbours: [Point4] = neighboursOf(current)
+            for next in neighbours {
+                if next.t < botCount {
+                    continue
+                }
+                if next.distanceTo3dOrigin < distanceToOrigin || next.t > botCount {
+                    return searchFrontier(next)
+                }
+                if next.distanceTo3dOrigin == distanceToOrigin && !visited.contains(next) {
+                    frontier.append(next)
+                    visited.append(next)
                 }
             }
-            if cluster.depth == deepestDepth {
-                deepestClusters.append(cluster)
+            count += 1
+            if count % 1000 == 0 {
+                print(visited.count)
             }
         }
-        
-        parent.children.filter { !$0.bots.isEmpty }.forEach { cluster in
-            recurseClusters(cluster, depth: depth + 1)
-        }
+        print("searchFrontier(\(p)) returning!")
+        return p
     }
-    
-    func findBotsInDeepestCluster() -> [Bot] {
 
-        let rootCluster = Cluster(nil, parent: nil, bots: bots, depth: 0)
-        
-        recurseClusters(rootCluster, depth: 1)
-        print("Depth:", deepestDepth)
-        print(deepestClusters[0].center!)
-        
-        var targetBots:[Bot] = []
-        var cluster = deepestClusters[0]
-        while cluster.parent != nil {
-            targetBots.append(cluster.center!)
-            cluster = cluster.parent!
-        }
-        return targetBots
+    /// The neighbours that are at least as close to origin as p (if all coords of p are > 0)
+    func neighboursOf(_ p:Point4) -> [Point4] {
+        var neighbours: [Point4] = []
+        neighbours.append(Point4(x: p.x - 1, y: p.y, z: p.z, t: botsInRangeOf(Point3(x: p.x - 1, y: p.y, z: p.z), bots)))
+        neighbours.append(Point4(x: p.x, y: p.y - 1, z: p.z, t: botsInRangeOf(Point3(x: p.x, y: p.y - 1, z: p.z), bots)))
+        neighbours.append(Point4(x: p.x, y: p.y, z: p.z - 1, t: botsInRangeOf(Point3(x: p.x, y: p.y, z: p.z - 1), bots)))
+
+        neighbours.append(Point4(x: p.x - 1, y: p.y + 1, z: p.z, t: botsInRangeOf(Point3(x: p.x - 1, y: p.y + 1, z: p.z), bots)))
+        neighbours.append(Point4(x: p.x - 1, y: p.y, z: p.z + 1, t: botsInRangeOf(Point3(x: p.x - 1, y: p.y, z: p.z + 1), bots)))
+        neighbours.append(Point4(x: p.x + 1, y: p.y - 1, z: p.z, t: botsInRangeOf(Point3(x: p.x + 1, y: p.y - 1, z: p.z), bots)))
+        neighbours.append(Point4(x: p.x, y: p.y - 1, z: p.z + 1, t: botsInRangeOf(Point3(x: p.x, y: p.y - 1, z: p.z + 1), bots)))
+        neighbours.append(Point4(x: p.x + 1, y: p.y, z: p.z - 1, t: botsInRangeOf(Point3(x: p.x + 1, y: p.y, z: p.z - 1), bots)))
+        neighbours.append(Point4(x: p.x, y: p.y + 1, z: p.z - 1, t: botsInRangeOf(Point3(x: p.x, y: p.y + 1, z: p.z - 1), bots)))
+
+        return neighbours.sorted(by: { $0.t > $1.t ||
+            ($0.t == $1.t && $0.distanceTo3dOrigin < $1.distanceTo3dOrigin) })
     }
 
     func solve () {
@@ -85,71 +125,22 @@ class Day23 {
         
         let strongestBot = bots.sorted(by: {$0.r > $1.r}).first!
         print("Part1: \(bots.filter({strongestBot.canReach($0)}).count)")
-
-        let targetBots = findBotsInDeepestCluster()
- 
-        var minimum = Point3(x: Int.min, y: Int.min, z: Int.min)
-        var maximum = Point3(x: Int.max, y: Int.max, z: Int.max)
-        for bot in targetBots {
-            minimum = Point3(x: max(minimum.x, bot.minX),
-                             y: max(minimum.y, bot.minY),
-                             z: max(minimum.z, bot.minZ))
-            maximum = Point3(x: min(maximum.x, bot.maxX),
-                             y: min(maximum.y, bot.maxY),
-                             z: min(maximum.z, bot.maxZ))
-        }
-
-        var size = maximum.x - minimum.x + maximum.y - minimum.y + maximum.z - minimum.z
-        var lastSize = size + 1
-        while size < lastSize {
-            for bot in targetBots {
-                var rangeLeft = bot.r
-                if bot.x < minimum.x { rangeLeft -= minimum.x - bot.x }
-                if bot.x > maximum.x { rangeLeft -= bot.x - maximum.x }
-                if bot.y < minimum.y { rangeLeft -= minimum.y - bot.y }
-                if bot.y > maximum.y { rangeLeft -= bot.y - maximum.y }
-                let minZ = max(minimum.z, bot.z - rangeLeft)
-                let maxZ = min(maximum.z, bot.z + rangeLeft)
-                
-                rangeLeft = bot.r
-                if bot.x < minimum.x { rangeLeft -= minimum.x - bot.x }
-                if bot.x > maximum.x { rangeLeft -= bot.x - maximum.x }
-                if bot.z < minimum.z { rangeLeft -= minimum.z - bot.z }
-                if bot.z > maximum.z { rangeLeft -= bot.z - maximum.z }
-                let minY = max(minimum.y, bot.y - rangeLeft)
-                let maxY = min(maximum.y, bot.y + rangeLeft)
-                
-                rangeLeft = bot.r
-                if bot.y < minimum.y { rangeLeft -= minimum.y - bot.y }
-                if bot.y > maximum.y { rangeLeft -= bot.y - maximum.y }
-                if bot.z < minimum.z { rangeLeft -= minimum.z - bot.z }
-                if bot.z > maximum.z { rangeLeft -= bot.z - maximum.z }
-                let minX = max(minimum.x, bot.x - rangeLeft)
-                let maxX = min(maximum.x, bot.x + rangeLeft)
-                
-                minimum = Point3(x: minX, y: minY, z: minZ)
-                maximum = Point3(x: maxX, y: maxY, z: maxZ)
-            }
-            lastSize = size
-            size = maximum.x - minimum.x + maximum.y - minimum.y + maximum.z - minimum.z
-        }
-        print()
-        print("Maximum: \(maximum)")
-        print("Minimum: \(minimum)")
-        
-        print("targetBots.count", targetBots.count)
-        print("botsInRangeOf(minimum)", botsInRangeOf(minimum, targetBots))
-        print("botsInRangeOf(maximum)", botsInRangeOf(maximum, targetBots))
-
-        let botsOutside = targetBots.filter { !$0.canReach(minimum) }
-
-        print("Minimum is \(minimum.manhattanDistance(to: Point3(x: 0, y: 0, z: 0)))")
-
-        let positiveBots = botsOutside.filter { $0.x > minimum.x && $0.y > minimum.y && $0.z > minimum.z }
-        for bot in bots.sorted(by: { $0.closestToZero() <  $1.closestToZero() }) {
-            print(bot.closestToZero(), bot.farthestFromZero(), bot)
-        }
-
+//
+//        var botDistance: [Int] = []
+//
+//        for bot in bots {
+//            let distance = bot.closestToZero()
+//            if !botDistance.contains(distance) {
+//                botDistance.append(distance)
+//            }
+//        }
+//        for distance in botDistance.sorted() {
+//            print(distance, bots.filter({ $0.closestToZero() <= distance && $0.farthestFromZero() >= distance }).count)
+//        }
+        let approximation = divideAndSearch(bots)
+        let bestPoint = searchFrontier(approximation)
+        print("--->", bestPoint)
+        print("Part 2: \(bestPoint.distanceTo3dOrigin)")
     }
     
     func botsInRangeOf(_ bot: Bot, _ bots:[Bot]) -> Int {
@@ -167,22 +158,9 @@ class Day23 {
 //  75629842 is too low
 //  75780131 is wrong
 //  84087794 is wrong
+//  77958168 is wrong
+//  77767601 is wrong
 
-
-class Cluster {
-    let center: Bot?
-    var bots: [Bot] = []
-    let parent: Cluster?
-    var children: [Cluster] = []
-    let depth: Int
-    
-    init(_ center: Bot?, parent: Cluster?, bots: [Bot], depth: Int) {
-        self.center = center
-        self.parent = parent
-        self.bots = bots
-        self.depth = depth
-    }
-}
 
 class Bot: NSObject {
     let x: Int

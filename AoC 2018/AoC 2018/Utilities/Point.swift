@@ -83,12 +83,19 @@ class Point3: NSObject {
     let x: Int
     let y: Int
     let z: Int
+
     init(x: Int, y: Int, z: Int) {
         self.x = x
         self.y = y
         self.z = z
     }
-    
+
+    init(_ p4: Point4) {
+        self.x = p4.x
+        self.y = p4.y
+        self.z = p4.z
+    }
+
     override var hash: Int  { get  { return x << 43 | y << 21 | z}}
     
     override func isEqual(_ object: Any?) -> Bool {
