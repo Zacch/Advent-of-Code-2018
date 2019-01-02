@@ -15,13 +15,125 @@ extension Point4 {
 class Day23 {
     
     var bots: [Bot] = []
-    
-    let granularity = 12
 
+    func solve () {
+        let lines = Utils.readFileIntegers("Day23.txt")
+        bots = lines.map { Bot($0) }
+        
+        let strongestBot = bots.sorted(by: {$0.r > $1.r}).first!
+        print("Part1: \(bots.filter({strongestBot.canReach($0)}).count)")
+
+        print("Part 2: \(part2())")
+    }
+
+    func part2() -> Int {
+        let granularity = 128
+
+        calculateIntersections(in: bots)
+        let sortedBots = bots.sorted(by: {$0.intersecting.count > $1.intersecting.count })
+        var intersectionCount = 0
+        for i in 0 ..< sortedBots.count {
+            if sortedBots[i].intersecting.count < i {
+                intersectionCount = i
+                break
+            }
+        }
+        
+        var intersectingBots = sortedBots[0 ..< intersectionCount]
+
+        // Find a good starting point for the search
+        var p = Point3(divideAndSearch(Array(intersectingBots)))
+        var botsInRange = intersectingBots.filter { $0.canReach(p) }
+        var notInRange =  intersectingBots.filter { !$0.canReach(p) }
+
+        while !notInRange.isEmpty {
+            // Walk closer to the first bot that is not in range
+            let bot = notInRange.first!
+            
+            var xStep = bot.x - p.x / granularity
+            var yStep = bot.y - p.y / granularity
+            var zStep = bot.z - p.z / granularity
+            let oldP = p
+            while xStep != 0 || yStep != 0 || zStep != 0 {
+                let nextP = Point3(x: p.x + xStep, y: p.y + yStep, z: p.z + zStep)
+                let outside = botsInRange.filter({ !$0.canReach(nextP) })
+                if (!outside.isEmpty) {
+                    xStep /= 2
+                    yStep /= 2
+                    zStep /= 2
+                } else {
+                    p = nextP
+                    if bot.canReach(p) {
+                        break
+                    }
+                }
+            }
+            
+            if oldP == p {
+                var nextP = Point3(x: p.x + 1, y: p.y, z: p.z)
+                if botsInRange.filter({ !$0.canReach(nextP) }).isEmpty {
+                    p = nextP
+                } else {
+                    nextP = Point3(x: p.x - 1, y: p.y, z: p.z)
+                    if botsInRange.filter({ !$0.canReach(nextP) }).isEmpty {
+                        p = nextP
+                    } else {
+                        nextP = Point3(x: p.x, y: p.y + 1, z: p.z)
+                        if botsInRange.filter({ !$0.canReach(nextP) }).isEmpty {
+                            p = nextP
+                        } else {
+                            nextP = Point3(x: p.x, y: p.y - 1, z: p.z)
+                            if botsInRange.filter({ !$0.canReach(nextP) }).isEmpty {
+                                p = nextP
+                            } else {
+                                nextP = Point3(x: p.x, y: p.y, z: p.z + 1)
+                                if botsInRange.filter({ !$0.canReach(nextP) }).isEmpty {
+                                    p = nextP
+                                } else {
+                                }
+                                nextP = Point3(x: p.x, y: p.y, z: p.z - 1)
+                                if botsInRange.filter({ !$0.canReach(nextP) }).isEmpty {
+                                    p = nextP
+                                } else {
+                                    // Ignore this bot and try another one
+                                    intersectingBots = intersectingBots.filter({ $0 != bot })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            botsInRange = intersectingBots.filter { $0.canReach(p) }
+            notInRange =  intersectingBots.filter({ !$0.canReach(p) }).sorted(by: { $0.manhattanDistance(to: p) - $0.r > $1.manhattanDistance(to: p) - $1.r })
+        }
+
+        return p.manhattanDistance(to: Point3(x: 0,y: 0,z: 0))
+    }
+
+    fileprivate func calculateIntersections(in botArray: [Bot]) {
+        botArray.forEach { $0.intersecting = [] }
+        
+        for i in 0 ..< botArray.count {
+            let bot = botArray[i]
+            for j in i + 1 ..< botArray.count {
+                let other = botArray[j]
+                if bot.intersects(other) {
+                    bot.intersecting.append(other)
+                }
+                if other.intersects(bot) {
+                    other.intersecting.append(bot)
+                }
+            }
+        }
+    }
+
+    
     fileprivate func divideAndSearch(_ bots: [Bot]) -> Point4 {
+        let granularity = 4
+
         var bestPoint = Point4([0,0,0,0])
-        var minimum = Point3(x: -(4 << 30), y: -(4 << 30), z: -(4 << 30))
-        var maximum = Point3(x: (4 << 30), y: (4 << 30), z: (4 << 30))
+        var minimum = Point3(x: (4 << 30), y: (4 << 30), z: (4 << 30))
+        var maximum = Point3(x: -(4 << 30), y: -(4 << 30), z: -(4 << 30))
         for bot in bots {
             minimum = Point3(x: min(minimum.x, bot.minX),
                              y: min(minimum.y, bot.minY),
@@ -30,9 +142,6 @@ class Day23 {
                              y: max(maximum.y, bot.maxY),
                              z: max(maximum.z, bot.maxZ))
         }
-        
-        print(minimum)
-        print(maximum)
         
         var xStep = (maximum.x - minimum.x) / granularity
         var yStep = (maximum.y - minimum.y) / granularity
@@ -52,9 +161,8 @@ class Day23 {
             let sortedPoints = points.sorted(by: { $0.t > $1.t ||
                 ($0.t == $1.t && $0.distanceTo3dOrigin < $1.distanceTo3dOrigin) })
             bestPoint = sortedPoints.first!
-            print(bestPoint, bestPoint.manhattanDistance(to: Point4([0, 0, 0, bestPoint.t])), xStep, yStep, zStep)
-            minimum = Point3(x: bestPoint.x - xStep * 5, y: bestPoint.y - yStep * 5, z: bestPoint.z - zStep * 5)
-            maximum = Point3(x: bestPoint.x + xStep * 5, y: bestPoint.y + yStep * 5, z: bestPoint.z + zStep * 5)
+            minimum = Point3(x: bestPoint.x - xStep, y: bestPoint.y - yStep, z: bestPoint.z - zStep)
+            maximum = Point3(x: bestPoint.x + xStep, y: bestPoint.y + yStep, z: bestPoint.z + zStep)
             if sortedPoints.first!.t > sortedPoints.last!.t {
                 xStep = (maximum.x - minimum.x) / granularity
                 yStep = (maximum.y - minimum.y) / granularity
@@ -67,100 +175,10 @@ class Day23 {
         return bestPoint
     }
     
-    /// This implementation is way too inefficient – there are millions of points on the "frontier" 
-    func searchFrontier(_ p: Point4) -> Point4 {
-        print("searchFrontier(\(p)) \(p.distanceTo3dOrigin)")
-        var frontier: [Point4] = [p]
-        var visited: [Point4] = []
-
-        let botCount = p.t
-        let distanceToOrigin = p.distanceTo3dOrigin
-
-        var count = 0
-        while !frontier.isEmpty {
-            let current = frontier.popLast()!
-            let neighbours: [Point4] = neighboursOf(current)
-            for next in neighbours {
-                if next.t < botCount {
-                    continue
-                }
-                if next.distanceTo3dOrigin < distanceToOrigin || next.t > botCount {
-                    return searchFrontier(next)
-                }
-                if next.distanceTo3dOrigin == distanceToOrigin && !visited.contains(next) {
-                    frontier.append(next)
-                    visited.append(next)
-                }
-            }
-            count += 1
-            if count % 1000 == 0 {
-                print(visited.count)
-            }
-        }
-        print("searchFrontier(\(p)) returning!")
-        return p
-    }
-
-    /// The neighbours that are at least as close to origin as p (if all coords of p are > 0)
-    func neighboursOf(_ p:Point4) -> [Point4] {
-        var neighbours: [Point4] = []
-        neighbours.append(Point4(x: p.x - 1, y: p.y, z: p.z, t: botsInRangeOf(Point3(x: p.x - 1, y: p.y, z: p.z), bots)))
-        neighbours.append(Point4(x: p.x, y: p.y - 1, z: p.z, t: botsInRangeOf(Point3(x: p.x, y: p.y - 1, z: p.z), bots)))
-        neighbours.append(Point4(x: p.x, y: p.y, z: p.z - 1, t: botsInRangeOf(Point3(x: p.x, y: p.y, z: p.z - 1), bots)))
-
-        neighbours.append(Point4(x: p.x - 1, y: p.y + 1, z: p.z, t: botsInRangeOf(Point3(x: p.x - 1, y: p.y + 1, z: p.z), bots)))
-        neighbours.append(Point4(x: p.x - 1, y: p.y, z: p.z + 1, t: botsInRangeOf(Point3(x: p.x - 1, y: p.y, z: p.z + 1), bots)))
-        neighbours.append(Point4(x: p.x + 1, y: p.y - 1, z: p.z, t: botsInRangeOf(Point3(x: p.x + 1, y: p.y - 1, z: p.z), bots)))
-        neighbours.append(Point4(x: p.x, y: p.y - 1, z: p.z + 1, t: botsInRangeOf(Point3(x: p.x, y: p.y - 1, z: p.z + 1), bots)))
-        neighbours.append(Point4(x: p.x + 1, y: p.y, z: p.z - 1, t: botsInRangeOf(Point3(x: p.x + 1, y: p.y, z: p.z - 1), bots)))
-        neighbours.append(Point4(x: p.x, y: p.y + 1, z: p.z - 1, t: botsInRangeOf(Point3(x: p.x, y: p.y + 1, z: p.z - 1), bots)))
-
-        return neighbours.sorted(by: { $0.t > $1.t ||
-            ($0.t == $1.t && $0.distanceTo3dOrigin < $1.distanceTo3dOrigin) })
-    }
-
-    func solve () {
-        let lines = Utils.readFileIntegers("Day23.txt")
-        bots = lines.map { Bot($0) }
-        
-        let strongestBot = bots.sorted(by: {$0.r > $1.r}).first!
-        print("Part1: \(bots.filter({strongestBot.canReach($0)}).count)")
-//
-//        var botDistance: [Int] = []
-//
-//        for bot in bots {
-//            let distance = bot.closestToZero()
-//            if !botDistance.contains(distance) {
-//                botDistance.append(distance)
-//            }
-//        }
-//        for distance in botDistance.sorted() {
-//            print(distance, bots.filter({ $0.closestToZero() <= distance && $0.farthestFromZero() >= distance }).count)
-//        }
-        let approximation = divideAndSearch(bots)
-        let bestPoint = searchFrontier(approximation)
-        print("--->", bestPoint)
-        print("Part 2: \(bestPoint.distanceTo3dOrigin)")
-    }
-    
-    func botsInRangeOf(_ bot: Bot, _ bots:[Bot]) -> Int {
-        return (bots.filter { $0.canReach(bot) }.count)
-    }
-    
     func botsInRangeOf(_ point: Point3, _ bots:[Bot]) -> Int {
         return (bots.filter { $0.canReach(point) }.count)
     }
 }
-
-
-// 119006026 is too high
-//  99011840 is too high
-//  75629842 is too low
-//  75780131 is wrong
-//  84087794 is wrong
-//  77958168 is wrong
-//  77767601 is wrong
-
 
 class Bot: NSObject {
     let x: Int
@@ -181,14 +199,6 @@ class Bot: NSObject {
         y = ints[1]
         z = ints[2]
         r = ints[3]
-    }
-    
-    func closestToZero() -> Int {
-        return max(0, manhattanDistance(to: Point3(x: 0, y: 0, z: 0)) - r)
-    }
-    
-    func farthestFromZero() -> Int {
-        return max(0, manhattanDistance(to: Point3(x: 0, y: 0, z: 0)) + r)
     }
 
     func manhattanDistance(to other: Bot) -> Int {
